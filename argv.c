@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   argv.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
+/*   By: ysay <ysay@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/15 12:49:16 by ysay              #+#    #+#             */
-/*   Updated: 2022/11/01 13:45:50 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/03 00:01:45 by ysay             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ t_argv	*argv_splice(t_argv *argv, size_t index, size_t n)
 {
 	t_argv	*ret;
 
-	if (argv == NULL || n == 0 || argv->len <= index + n)
+	if (argv == NULL || n == 0 || argv->len < index + n)
 		return (NULL);
 	ret = argv_new(NULL, NULL);
 	argv_insert_array_n(ret, 0, &argv->array[index], n);
