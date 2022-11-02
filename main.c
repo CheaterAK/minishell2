@@ -453,6 +453,8 @@ int	exec_all(t_argv *exec, int max_proc)
 			close(fd);
 		close(io[1]);  // bu calışır sanırım
 		fd = io[0];
+		if (i == max_proc -1)
+			close(fd);
 		++i;
 	}
 	return (wait_all(pid, max_proc));
