@@ -125,13 +125,14 @@ int	ft_cd(t_argv *cmd)
 			env->try_index = 0;
 			getcwd(cwd, 512);
 			ft_printf("%s\n", cwd);
-            // update OLD_PWD from PWD
-			if (argv_try(env,"OLD_PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
+			if (argv_try(env,"OLDPWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
             {
                 pwd = get_env(strdup("PWD"));
+                ft_printf("pwd= %s\n", pwd);
                 argv_del_one(env, env->try_index, free);
-                env->array[env->try_index] = ft_strjoin("OLD_PWD=", pwd);
+                argv_insert(env, env->try_index, ft_strjoin("OLDPWD=", pwd));
             }
+            env->try_index = 0;
 			if (argv_try(env, "PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
 				argv_del_one(env, env->try_index, (void(*)(void *))free);
 			argv_insert(env, env->try_index, ft_strjoin("PWD=", cwd));
