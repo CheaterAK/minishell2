@@ -611,8 +611,8 @@ int	exec_all(t_argv *exec, int max_proc)
 			close(fd);
 		close(io[1]);  // bu calışır sanırım
 		fd = io[0];
-		//if (i == max_proc -1)
-	//		close(fd);
+		if (i == max_proc -1)
+			close(fd);
 		++i;
 	}
 	return (wait_all(pid, max_proc));
@@ -672,11 +672,8 @@ int	main(int argc, char **argv, char **envp)
 		cmd = argv_new(NULL, NULL);
 		add_history(line);
 		lexer(cmd, line);
-		if (argv_try(cmd, "|", 0, (int(*)(void *, void *))ft_strcmp) == 0)
-		{
-			if (is_builtin(cmd))
+		if (argv_try(cmd, "|", 0, (int(*)(void *, void *))ft_strcmp) != 0 && is_builtin(cmd))
 				status = builtin_operation(cmd);
-		}
 		else
 			exec_all(cmd, find_procces_size(cmd));
 		//print_cmd(cmd);
