@@ -217,12 +217,14 @@ int	jump_to_single_quote(char *line)
 }
 
 
-char	*implement(char *line)
+char	*implement(char *line_s)
 {
 	char	*tmp;
 	int		i;
 	int		len;
+	char	*line;
 
+	line = ft_strdup(line_s);
 	i = 0;
 	while (line[i])
 	{
@@ -234,10 +236,12 @@ char	*implement(char *line)
 			tmp = str3join(ft_substr(line, 0, i), get_env(ft_substr(&line[i], 0,
 							len)), ft_substr(&line[i + len], 0,
 						ft_strlen(&line[i + len])));
+			free(line);
+			line = tmp;
 		}
 		i++;
 	}
-	return (tmp);
+	return (line);
 }
 
 char	*clear_this(char *line, int c)
@@ -325,7 +329,9 @@ char	*lexer_word_plus_quit(t_argv *cmd, char *line)
 		res = 0;
 		while (!ft_strchr("\"\' |<>", *(line + res)))
 			res++;
-		tmp2 = ft_substr(line, 0, res);
+		tmp = ft_substr(line, 0, res);
+		tmp2 = implement(tmp);
+		free(tmp);
 		tmp = ft_strjoin(str, tmp2);
 		free(str);
 		free(tmp2);
