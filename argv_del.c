@@ -6,7 +6,7 @@
 /*   By: ysay <ysay@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/09/15 12:49:02 by ysay              #+#    #+#             */
-/*   Updated: 2022/09/15 17:09:26 by ysay             ###   ########.fr       */
+/*   Updated: 2022/11/03 00:35:01 by ysay             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ int	argv_del_n(t_argv *argv, size_t index, void (*del)(void *), size_t n)
 {
 	int	res;
 
-	if (argv == NULL || argv->len <= index + n || !n)
+	if (argv == NULL || argv->len <= index || argv->len < index + n || !n)
 		return (-1);
 	res = array_del_n(&argv->array[index], del, n);
 	if (-1 != res)
