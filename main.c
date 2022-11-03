@@ -11,8 +11,45 @@
 #include <fcntl.h>
 #define burada ft_printf("burada \n");
 
+t_argv	*g_et;
 int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 				void *));
+
+int	env_cmp(char *s1, char *s2)
+{
+	int		res;
+	char	*tmp;
+	char	*ret;
+
+	res = ft_strncmp(s2, s1, ft_strlen(s2));
+	return (res);
+}
+
+char	*get_env(char *str)
+{
+	t_argv	*env;
+	char	*tmp;
+	char	*ret;
+
+	env = g_et->array[0];
+	tmp = ft_strjoin(str + 1, "=");
+	free(str);
+	if (argv_try(env, tmp, 0, (int (*)(void *, void *))env_cmp) == 0)
+	{
+		ret = ft_substr(env->array[env->try_index], ft_strlen(tmp),
+				ft_strlen(env->array[env->try_index]) - ft_strlen(tmp));
+		free(tmp);
+		return (ret);
+	}
+	else
+	{
+		free(tmp);
+		return (ft_strdup(""));
+	}
+}
+
+
+
 int	ft_exit(t_argv *cmd)
 {
 	if (cmd->len = 1)
@@ -69,36 +106,40 @@ int	ft_echo(t_argv *cmd)
 	return (0);
 }
 
-t_argv	*g_et;
 
 int	ft_cd(t_argv *cmd) // env tan pathleri guncellemek lazim
 {
-	char *path;
+	char cwd[512];
+	char	*path;
 	t_argv *env;
-	env = g_et->array[0];
 
-	if (cmd->len == 1)
+	env = g_et->array[0];
+	if (cmd->len == 2)
 	{
-		env->try_index = 0;
-		while (argv_try(env, "HOME=", 0, (int (*)(void *, void *))strcmp) == 0)
+		
+		path = ft_strdup(cmd->array[1]);
+		if (0 == chdir(path))
 		{
-			path = env->array[env->try_index];
-			path = ft_strchr(path, '=');
-			path++;
+			free(path);
+			env->try_index = 0;
+			getcwd(cwd, 512);
+			ft_printf("%s\n", cwd);
+			if (argv_try(env, "PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
+				argv_del_one(env, env->try_index, (void(*)(void *))free);
+			argv_insert(env, env->try_index, ft_strjoin("PWD=", cwd));
 		}
-		if (path == NULL)
-			ft_printf("cd: HOME not set\n");
 		else
-			chdir(path);
-	}
-	else if (cmd->len == 2)
-	{
-		if (chdir(cmd->array[1]) == -1)
-			ft_printf("cd: %s: No such file or directory\n", cmd->array[1]);
+		{
+			free(path);
+			//write_err();
+			return (1);
+		}
 	}
 	else
-		ft_printf("cd: too many arguments\n");
-	return (0);
+	{
+		//writ_err();
+		return (1);
+	}
 }
 
 int	ft_pwd(t_argv *cmd)
@@ -166,38 +207,6 @@ int	jump_to_single_quote(char *line)
 	return (jump);
 }
 
-int	env_cmp(char *s1, char *s2)
-{
-	int		res;
-	char	*tmp;
-	char	*ret;
-
-	res = ft_strncmp(s2, s1, ft_strlen(s2));
-	return (res);
-}
-
-char	*get_env(char *str)
-{
-	t_argv	*env;
-	char	*tmp;
-	char	*ret;
-
-	env = g_et->array[0];
-	tmp = ft_strjoin(str + 1, "=");
-	free(str);
-	if (argv_try(env, tmp, 0, (int (*)(void *, void *))env_cmp) == 0)
-	{
-		ret = ft_substr(env->array[env->try_index], ft_strlen(tmp),
-				ft_strlen(env->array[env->try_index]) - ft_strlen(tmp));
-		free(tmp);
-		return (ret);
-	}
-	else
-	{
-		free(tmp);
-		return (ft_strdup(""));
-	}
-}
 
 char	*implement(char *line)
 {
@@ -602,8 +611,8 @@ int	exec_all(t_argv *exec, int max_proc)
 			close(fd);
 		close(io[1]);  // bu calışır sanırım
 		fd = io[0];
-		if (i == max_proc -1)
-			close(fd);
+		//if (i == max_proc -1)
+	//		close(fd);
 		++i;
 	}
 	return (wait_all(pid, max_proc));
