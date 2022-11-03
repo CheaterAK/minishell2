@@ -630,17 +630,11 @@ int	main(int argc, char **argv, char **envp)
 		add_history(line);
 		lexer(cmd, line);
 		free(line);
-<<<<<<< HEAD
 		builtin_tester(cmd);
-		//print_cmd(cmd);
-		argv_destroy(cmd, free);
-		//system("leaks minishell");
-=======
 		exec_all(cmd, find_procces_size(cmd));
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
 	///	system("leaks minishell");
->>>>>>> refs/remotes/origin/main
 	}
 	return (0);
 }
