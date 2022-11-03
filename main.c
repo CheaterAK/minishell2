@@ -504,13 +504,54 @@ char	*get_path(char *cmd)
 	}
 }
 
+int builtin_tester(t_argv *cmd)
+{
+    if (!ft_strcmp(cmd->array[0], "echo"))
+        return (ft_echo(cmd));
+    if (!ft_strcmp(cmd->array[0], "cd"))
+        return (ft_cd(cmd));
+    if (!ft_strcmp(cmd->array[0], "pwd"))
+        return (ft_pwd(cmd));
+   // if (!ft_strcmp(cmd->array[0], "export"))
+    //    return (ft_export(cmd));
+    //if (!ft_strcmp(cmd->array[0], "unset"))
+    //    return (ft_unset(cmd));
+    if (!ft_strcmp(cmd->array[0], "env"))
+        return (ft_env(cmd));
+    if (!ft_strcmp(cmd->array[0], "exit"))
+        return (ft_exit(cmd));
+    return (0);
+}
 
-void exec_this(t_argv *cmd)
+int is_builtin(t_argv *cmd)
+{
+    if (!ft_strcmp(cmd->array[0], "echo"))
+        return (1);
+    if (!ft_strcmp(cmd->array[0], "cd"))
+        return (1);
+    if (!ft_strcmp(cmd->array[0], "pwd"))
+        return (1);
+    if (!ft_strcmp(cmd->array[0], "export"))
+        return (1);
+    if (!ft_strcmp(cmd->array[0], "unset"))
+        return (1);
+    if (!ft_strcmp(cmd->array[0], "env"))
+        return (1);
+    if (!ft_strcmp(cmd->array[0], "exit"))
+        return (1);
+    return (0);
+}
+
+
+
+int exec_this(t_argv *cmd)
 {
 	char	*path;
 	t_argv	*env;
 
 //	folder_operations(cmd);
+	if (is_builtin(cmd))
+		return (builtin_tester(cmd));
 	path = get_path(cmd->array[0]);
 //	if (!path);
 //		write_error();
@@ -568,24 +609,20 @@ int	exec_all(t_argv *exec, int max_proc)
 	return (wait_all(pid, max_proc));
 }
 
-
-int builtin_tester(t_argv *cmd)
+int	builtin_operation(t_argv *cmd)
 {
-    if (!ft_strcmp(cmd->array[0], "echo"))
-        return (ft_echo(cmd));
-    if (!ft_strcmp(cmd->array[0], "cd"))
-        return (ft_cd(cmd));
-    if (!ft_strcmp(cmd->array[0], "pwd"))
-        return (ft_pwd(cmd));
-   // if (!ft_strcmp(cmd->array[0], "export"))
-    //    return (ft_export(cmd));
-    //if (!ft_strcmp(cmd->array[0], "unset"))
-    //    return (ft_unset(cmd));
-    if (!ft_strcmp(cmd->array[0], "env"))
-        return (ft_env(cmd));
-    if (!ft_strcmp(cmd->array[0], "exit"))
-        return (ft_exit(cmd));
-    return (0);
+	int	in;
+	int	out;
+	int ret;
+
+	in = dup(0);
+	out = dup(1);
+	ret = exec_this(cmd);
+	dup2(in, 0);
+	dup2(out, 1);
+	close(in);
+	close(out);
+	return (ret);
 }
 
 
@@ -612,8 +649,8 @@ int	main(int argc, char **argv, char **envp)
 	// open $ >
 	// fd operations >
 	// execve | building (edited)
-	status = 1;
-	while (status)
+	status = 0;
+	while (1)
 	{
 		line = readline("$> ");
 		if (line == NULL)
@@ -626,9 +663,13 @@ int	main(int argc, char **argv, char **envp)
 		cmd = argv_new(NULL, NULL);
 		add_history(line);
 		lexer(cmd, line);
-		free(line);
-		builtin_tester(cmd);
-		exec_all(cmd, find_procces_size(cmd));
+		if (argv_try(cmd, "|", 0, (int(*)(void *, void *))ft_strcmp) == 0)
+		{
+			if (is_builtin(cmd))
+				status = builtin_operation(cmd);
+		}
+		else
+			exec_all(cmd, find_procces_size(cmd));
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
 	///	system("leaks minishell");
