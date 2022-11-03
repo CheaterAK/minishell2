@@ -127,10 +127,10 @@ int	ft_cd(t_argv *cmd)
 			ft_printf("%s\n", cwd);
 			if (argv_try(env,"OLDPWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
             {
-                pwd = get_env(strdup("PWD"));
-                ft_printf("pwd= %s\n", pwd);
+                pwd = get_env(strdup("$PWD"));
                 argv_del_one(env, env->try_index, free);
                 argv_insert(env, env->try_index, ft_strjoin("OLDPWD=", pwd));
+                free (pwd);
             }
             env->try_index = 0;
 			if (argv_try(env, "PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
