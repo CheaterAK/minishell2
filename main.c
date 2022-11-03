@@ -6,19 +6,16 @@
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
-<<<<<<< HEAD
-#define burada ft_printf("burada \n");
-=======
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <fcntl.h>
->>>>>>> refs/remotes/origin/main
+#define burada ft_printf("burada \n");
 
 int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 				void *));
 int	ft_exit(t_argv *cmd)
 {
-	if (cmd->len == 1)
+	if (cmd->len = 1)
 		exit(0);
 	else if (cmd->len >= 2)
 	{
