@@ -46,5 +46,5 @@ int		argv_try(t_argv *argv, void *addr, size_t index,
 t_argv	*argv_splice(t_argv *argv, size_t index, size_t n);
 t_argv	*argv_new(void *array[], void *(*fptr)(void *));
 int		argv_destroy(t_argv *argv, void (*del)(void *));
-
+int argv_is(t_argv *argv, size_t index, int (*fptr)(int));
 #endif

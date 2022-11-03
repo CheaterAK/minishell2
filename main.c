@@ -5,11 +5,119 @@
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define burada ft_printf("burada \n");
 
 int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 				void *));
+int	ft_exit(t_argv *cmd)
+{
+	if (cmd->len == 1)
+		exit(0);
+	else if (cmd->len >= 2)
+	{
+		if (argv_is(cmd, 1, (int (*)(int))ft_isdigit) == 1)
+		{
+			if (cmd->len > 2)
+			{
+				ft_printf("exit: too many arguments\n");
+				return (1);
+			}
+			else
+				exit(ft_atoi(cmd->array[1]));
+		}
+		else
+		{
+			ft_printf("exit: %s: numeric argument required\n",
+						(char *)cmd->array[1]);
+			exit(2);
+		}
+	}
+	return (-1);
+}
+
+int	ft_echo(t_argv *cmd)
+{
+	int	i;
+	int	n;
+
+	i = 1;
+	n = 0;
+	if (cmd->len == 1)
+		ft_printf("\n");
+	else
+	{
+		cmd->try_index = 0;
+		while (argv_try(cmd, "-n", i, (int (*)(void *, void *))strcmp) == 0)
+		{
+			n = 1;
+			i++;
+		}
+		while (i < cmd->len)
+		{
+			ft_printf("%s", cmd->array[i]);
+			if (i < cmd->len - 1)
+				ft_printf(" ");
+			i++;
+		}
+		if (n == 0)
+			ft_printf("\n");
+	}
+	return (0);
+}
 
 t_argv	*g_et;
+
+int	ft_cd(t_argv *cmd) // env tan pathleri guncellemek lazim
+{
+	char *path;
+	t_argv *env;
+	env = g_et->array[0];
+
+	if (cmd->len == 1)
+	{
+		env->try_index = 0;
+		while (argv_try(env, "HOME=", 0, (int (*)(void *, void *))strcmp) == 0)
+		{
+			path = env->array[env->try_index];
+			path = ft_strchr(path, '=');
+			path++;
+		}
+		if (path == NULL)
+			ft_printf("cd: HOME not set\n");
+		else
+			chdir(path);
+	}
+	else if (cmd->len == 2)
+	{
+		if (chdir(cmd->array[1]) == -1)
+			ft_printf("cd: %s: No such file or directory\n", cmd->array[1]);
+	}
+	else
+		ft_printf("cd: too many arguments\n");
+	return (0);
+}
+
+int	ft_pwd(t_argv *cmd)
+{
+	char	*path;
+
+	path = getcwd(NULL, 0);
+	ft_printf("%s\n", path);
+	free(path);
+	return (0);
+}
+
+int	ft_env(t_argv *cmd)
+{
+	t_argv	*env;
+	int		i;
+
+	i = 0;
+	env = g_et->array[0];
+	while (i < env->len)
+		ft_printf("%s\n", env->array[i++]);
+	return (0);
+}
 
 int		jump_to_single_quote(char *line);
 
@@ -245,9 +353,9 @@ char	*lexer_token(t_argv *cmd, char *line)
 
 char	*heredoc_op(char *line)
 {
-	char *str;
-	char *read;
-	int save;
+	char	*str;
+	char	*read;
+	int		save;
 
 	save = dup(0);
 	str = ft_strdup("");
@@ -255,16 +363,16 @@ char	*heredoc_op(char *line)
 	{
 		read = readline("> ");
 		if (!read)
-			break;
+			break ;
 		if (!ft_strcmp(line, read))
-			break;
-			str = str3join(str, read, ft_strdup("\n"));
+			break ;
+		str = str3join(str, read, ft_strdup("\n"));
 	}
 	if (read)
 		free(read);
 	dup2(save, 0);
 	close(save);
-	return str;
+	return (str);
 }
 
 int	lexer(t_argv *cmd, char *line)
@@ -311,6 +419,27 @@ void	print_cmd(t_argv *cmd)
 	printf("\n\n\n");
 }
 
+
+int builtin_tester(t_argv *cmd)
+{
+    if (!ft_strcmp(cmd->array[0], "echo"))
+        return (ft_echo(cmd));
+    if (!ft_strcmp(cmd->array[0], "cd"))
+        return (ft_cd(cmd));
+    if (!ft_strcmp(cmd->array[0], "pwd"))
+        return (ft_pwd(cmd));
+   // if (!ft_strcmp(cmd->array[0], "export"))
+    //    return (ft_export(cmd));
+    //if (!ft_strcmp(cmd->array[0], "unset"))
+    //    return (ft_unset(cmd));
+    if (!ft_strcmp(cmd->array[0], "env"))
+        return (ft_env(cmd));
+    if (!ft_strcmp(cmd->array[0], "exit"))
+        return (ft_exit(cmd));
+    return (0);
+}
+
+
 int	main(int argc, char **argv, char **envp)
 {
 	char	*line;
@@ -349,10 +478,10 @@ int	main(int argc, char **argv, char **envp)
 		add_history(line);
 		lexer(cmd, line);
 		free(line);
-		print_cmd(cmd);
-		//exevall
+		builtin_tester(cmd);
+		//print_cmd(cmd);
 		argv_destroy(cmd, free);
-		system("leaks minishell");
+		//system("leaks minishell");
 	}
 	return (0);
 }

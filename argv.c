@@ -12,6 +12,24 @@
 
 #include <argv.h>
 
+int argv_is(t_argv *argv, size_t index, int (*fptr)(int))
+{
+    int i;
+    char *tmp;
+
+    if (argv == NULL || fptr == NULL ||index >= argv->len)
+        return (-1);
+    tmp = argv->array[index];
+    i = 0;
+    while (tmp[i])
+    {
+        if (fptr(tmp[i]) == 0)
+            return (0);
+        i++;
+    }
+    return (1);
+}
+
 int	argv_destroy(t_argv *argv, void (*del)(void *))
 {
 	if (argv == NULL)
