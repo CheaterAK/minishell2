@@ -1,14 +1,14 @@
 #include "ft_printf/ft_printf.h"
 #include "minishell.h"
 #include <argv.h>
+#include <fcntl.h>
 #include <readline/history.h>
-#include <unistd.h>
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <fcntl.h>
+#include <unistd.h>
 #define burada ft_printf("burada \n");
 
 t_argv	*g_et;
@@ -47,8 +47,6 @@ char	*get_env(char *str)
 		return (ft_strdup(""));
 	}
 }
-
-
 
 int	ft_exit(t_argv *cmd)
 {
@@ -106,18 +104,16 @@ int	ft_echo(t_argv *cmd)
 	return (0);
 }
 
-
 int	ft_cd(t_argv *cmd)
 {
-	char cwd[512];
+	char	cwd[512];
 	char	*path;
-    char *pwd;
-	t_argv *env;
+	char	*pwd;
+	t_argv	*env;
 
 	env = g_et->array[0];
 	if (cmd->len == 2)
 	{
-
 		path = ft_strdup(cmd->array[1]);
 		if (0 == chdir(path))
 		{
@@ -125,16 +121,17 @@ int	ft_cd(t_argv *cmd)
 			env->try_index = 0;
 			getcwd(cwd, 512);
 			ft_printf("%s\n", cwd);
-			if (argv_try(env,"OLDPWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
-            {
-                pwd = get_env(strdup("$PWD"));
-                argv_del_one(env, env->try_index, free);
-                argv_insert(env, env->try_index, ft_strjoin("OLDPWD=", pwd));
-                free (pwd);
-            }
-            env->try_index = 0;
+			if (argv_try(env, "OLDPWD=", 0, (int (*)(void *,
+							void *))env_cmp) == 0)
+			{
+				pwd = get_env(strdup("$PWD"));
+				argv_del_one(env, env->try_index, free);
+				argv_insert(env, env->try_index, ft_strjoin("OLDPWD=", pwd));
+				free(pwd);
+			}
+			env->try_index = 0;
 			if (argv_try(env, "PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
-				argv_del_one(env, env->try_index, (void(*)(void *))free);
+				argv_del_one(env, env->try_index, (void (*)(void *))free);
 			argv_insert(env, env->try_index, ft_strjoin("PWD=", cwd));
 		}
 		else
@@ -215,7 +212,6 @@ int	jump_to_single_quote(char *line)
 	}
 	return (jump);
 }
-
 
 char	*implement(char *line_s)
 {
@@ -449,22 +445,22 @@ void	print_cmd(t_argv *cmd)
 
 int	find_procces_size(t_argv *exec)
 {
-	int	i; // anlamadım  evet
-
+	int i; // anlamadım  evet
 	i = 0;
 	exec->try_index = 0;
-	while(!argv_try(exec, "|", exec->try_index, (int(*)(void *, void *))ft_strcmp))
+	while (!argv_try(exec, "|", exec->try_index, (int (*)(void *,
+					void *))ft_strcmp))
 	{
 		++i;
 		exec->try_index++;
 	}
-		++i;
+	++i;
 	return (i);
 }
 
 int	wait_all(int pid, int max)
 {
-	int i;
+	int	i;
 	int	st;
 	int	last_pid;
 
@@ -478,7 +474,6 @@ int	wait_all(int pid, int max)
 	return (last_pid >> 8);
 }
 
-
 int	try_access(char *path, char *cmd)
 {
 	char	*str;
@@ -486,12 +481,10 @@ int	try_access(char *path, char *cmd)
 
 	str = str3join(ft_strdup(path), ft_strdup("/"), ft_strdup(cmd));
 	st = access(str, X_OK);
-
 	ft_printf("tyr = %s\n", str);
 	free(str);
 	return (st);
 }
-
 
 char	*get_path(char *cmd)
 {
@@ -500,8 +493,8 @@ char	*get_path(char *cmd)
 	char	*str;
 	char	*ret;
 
-
-	if (!ft_strncmp("/", cmd, 1) || !ft_strncmp("./", cmd, 2) || !ft_strncmp("../", cmd, 3))
+	if (!ft_strncmp("/", cmd, 1) || !ft_strncmp("./", cmd, 2)
+		|| !ft_strncmp("../", cmd, 3))
 		return (ft_strdup(cmd));
 	str = get_env(ft_strdup("$PATH"));
 	ret = NULL;
@@ -515,73 +508,70 @@ char	*get_path(char *cmd)
 	path = argv_new(tmp, NULL);
 	if (argv_try(path, cmd, 0, (int (*)(void *, void *))try_access) == 0)
 	{
-
-		ret = str3join(ft_strdup(path->array[path->try_index]), ft_strdup("/"), ft_strdup(cmd));
+		ret = str3join(ft_strdup(path->array[path->try_index]), ft_strdup("/"),
+				ft_strdup(cmd));
 		ft_printf("last>>>%s\n", ret);
-		argv_destroy(path, (void(*)(void *))free);
+		argv_destroy(path, (void (*)(void *))free);
 		return (ret);
 	}
 	else
 	{
-		argv_destroy(path, (void(*)(void *))free);
+		argv_destroy(path, (void (*)(void *))free);
 		return (NULL);
 	}
 }
 
-int builtin_tester(t_argv *cmd)
+int	builtin_tester(t_argv *cmd)
 {
-    if (!ft_strcmp(cmd->array[0], "echo"))
-        return (ft_echo(cmd));
-    if (!ft_strcmp(cmd->array[0], "cd"))
-        return (ft_cd(cmd));
-    if (!ft_strcmp(cmd->array[0], "pwd"))
-        return (ft_pwd(cmd));
-   // if (!ft_strcmp(cmd->array[0], "export"))
-    //    return (ft_export(cmd));
-    //if (!ft_strcmp(cmd->array[0], "unset"))
-    //    return (ft_unset(cmd));
-    if (!ft_strcmp(cmd->array[0], "env"))
-        return (ft_env(cmd));
-    if (!ft_strcmp(cmd->array[0], "exit"))
-        return (ft_exit(cmd));
-    return (0);
+	if (!ft_strcmp(cmd->array[0], "echo"))
+		return (ft_echo(cmd));
+	if (!ft_strcmp(cmd->array[0], "cd"))
+		return (ft_cd(cmd));
+	if (!ft_strcmp(cmd->array[0], "pwd"))
+		return (ft_pwd(cmd));
+	// if (!ft_strcmp(cmd->array[0], "export"))
+	//    return (ft_export(cmd));
+	//if (!ft_strcmp(cmd->array[0], "unset"))
+	//    return (ft_unset(cmd));
+	if (!ft_strcmp(cmd->array[0], "env"))
+		return (ft_env(cmd));
+	if (!ft_strcmp(cmd->array[0], "exit"))
+		return (ft_exit(cmd));
+	return (0);
 }
 
-int is_builtin(t_argv *cmd)
+int	is_builtin(t_argv *cmd)
 {
-    if (!ft_strcmp(cmd->array[0], "echo"))
-        return (1);
-    if (!ft_strcmp(cmd->array[0], "cd"))
-        return (1);
-    if (!ft_strcmp(cmd->array[0], "pwd"))
-        return (1);
-    if (!ft_strcmp(cmd->array[0], "export"))
-        return (1);
-    if (!ft_strcmp(cmd->array[0], "unset"))
-        return (1);
-    if (!ft_strcmp(cmd->array[0], "env"))
-        return (1);
-    if (!ft_strcmp(cmd->array[0], "exit"))
-        return (1);
-    return (0);
+	if (!ft_strcmp(cmd->array[0], "echo"))
+		return (1);
+	if (!ft_strcmp(cmd->array[0], "cd"))
+		return (1);
+	if (!ft_strcmp(cmd->array[0], "pwd"))
+		return (1);
+	if (!ft_strcmp(cmd->array[0], "export"))
+		return (1);
+	if (!ft_strcmp(cmd->array[0], "unset"))
+		return (1);
+	if (!ft_strcmp(cmd->array[0], "env"))
+		return (1);
+	if (!ft_strcmp(cmd->array[0], "exit"))
+		return (1);
+	return (0);
 }
 
-
-
-int exec_this(t_argv *cmd)
+int	exec_this(t_argv *cmd)
 {
 	char	*path;
 	t_argv	*env;
 
-//	folder_operations(cmd);
+	//	folder_operations(cmd);
 	if (is_builtin(cmd))
 		return (builtin_tester(cmd));
 	path = get_path(cmd->array[0]);
-//	if (!path);
-//		write_error();
+	//	if (!path);
+	//		write_error();
 	ft_printf("%s\n", path);
 	env = g_et->array[0];
-
 	ft_printf("cmd=%s\n", cmd->array[0]);
 	execve(path, cmd->array, env->array);
 }
@@ -589,14 +579,14 @@ int exec_this(t_argv *cmd)
 int	exec_all(t_argv *exec, int max_proc)
 {
 	int		pid;
-	int 	fd;
-	int 	i;
+	int		fd;
+	int		i;
 	int		io[2];
 	t_argv	*trgt;
 
 	i = 0;
-	fd  = 0;
-	while (i  < max_proc)
+	fd = 0;
+	while (i < max_proc)
 	{
 		if (-1 == argv_try(exec, "|", 0, (int (*)(void *, void *))ft_strcmp))
 			trgt = argv_splice(exec, 0, exec->len);
@@ -612,10 +602,11 @@ int	exec_all(t_argv *exec, int max_proc)
 			if (i != 0)
 			{
 				dup2(fd, 0);
-				close(fd);   // hocam bu gece yeterli sanırım :))))
+				close(fd); // hocam bu gece yeterli sanırım :))))
 			}
 			if (i != max_proc - 1)
-				dup2(io[1], 1); // düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
+				dup2(io[1], 1);
+					// düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
 			close(io[0]);
 			close(io[1]);
 			exec_this(trgt); // bir değişkene de ihtiyacım var :)))) evet
@@ -624,9 +615,9 @@ int	exec_all(t_argv *exec, int max_proc)
 		argv_destroy(trgt, (void (*)(void *))free);
 		if (i != 0)
 			close(fd);
-		close(io[1]);  // bu calışır sanırım
+		close(io[1]); // bu calışır sanırım
 		fd = io[0];
-		if (i == max_proc -1)
+		if (i == max_proc - 1)
 			close(fd);
 		++i;
 	}
@@ -637,7 +628,7 @@ int	builtin_operation(t_argv *cmd)
 {
 	int	in;
 	int	out;
-	int ret;
+	int	ret;
 
 	in = dup(0);
 	out = dup(1);
@@ -648,7 +639,6 @@ int	builtin_operation(t_argv *cmd)
 	close(out);
 	return (ret);
 }
-
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -687,13 +677,14 @@ int	main(int argc, char **argv, char **envp)
 		cmd = argv_new(NULL, NULL);
 		add_history(line);
 		lexer(cmd, line);
-		if (argv_try(cmd, "|", 0, (int(*)(void *, void *))ft_strcmp) != 0 && is_builtin(cmd))
-				status = builtin_operation(cmd);
+		if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
+			&& is_builtin(cmd))
+			status = builtin_operation(cmd);
 		else
 			exec_all(cmd, find_procces_size(cmd));
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
-	///	system("leaks minishell");
+		///	system("leaks minishell");
 	}
 	return (0);
 }
