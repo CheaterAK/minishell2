@@ -2,10 +2,17 @@
 #include "minishell.h"
 #include <argv.h>
 #include <readline/history.h>
+#include <unistd.h>
 #include <readline/readline.h>
 #include <stdio.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 #define burada ft_printf("burada \n");
+=======
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+>>>>>>> refs/remotes/origin/main
 
 int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 				void *));
@@ -409,14 +416,159 @@ void	print_cmd(t_argv *cmd)
 {
 	int	i;
 
-	printf("\n\n\n");
+	printf("\n");
 	i = 0;
 	while (cmd->array[i])
 	{
-		printf("%s\n", cmd->array[i]);
+		printf("---->%s\n", cmd->array[i]);
 		i++;
 	}
-	printf("\n\n\n");
+	printf("\n");
+}
+
+int	find_procces_size(t_argv *exec)
+{
+	int	i; // anlamadım  evet
+
+	i = 0;
+	exec->try_index = 0;
+	while(!argv_try(exec, "|", exec->try_index, (int(*)(void *, void *))ft_strcmp))
+	{
+		++i;
+		exec->try_index++;
+	}
+		++i;
+	return (i);
+}
+
+int	wait_all(int pid, int max)
+{
+	int i;
+	int	st;
+	int	last_pid;
+
+	i = 0;
+	while (i < max)
+	{
+		if (waitpid(0, &st, 0) == pid)
+			last_pid = st;
+		i++;
+	}
+	return (last_pid >> 8);
+}
+
+
+int	try_access(char *path, char *cmd)
+{
+	char	*str;
+	int		st;
+
+	str = str3join(ft_strdup(path), ft_strdup("/"), ft_strdup(cmd));
+	st = access(str, X_OK);
+	
+	ft_printf("tyr = %s\n", str);
+	free(str);
+	return (st);
+}
+
+
+char	*get_path(char *cmd)
+{
+	t_argv	*path;
+	char	**tmp;
+	char	*str;
+	char	*ret;
+
+
+	if (!ft_strncmp("/", cmd, 1) || !ft_strncmp("./", cmd, 2) || !ft_strncmp("../", cmd, 3))
+		return (ft_strdup(cmd));
+	str = get_env(ft_strdup("$PATH"));
+	ret = NULL;
+	if (!*str)
+	{
+		free(str);
+		return (NULL);
+	}
+	tmp = ft_split(str, ':');
+	free(str);
+	path = argv_new(tmp, NULL);
+	if (argv_try(path, cmd, 0, (int (*)(void *, void *))try_access) == 0)
+	{
+
+		ret = str3join(ft_strdup(path->array[path->try_index]), ft_strdup("/"), ft_strdup(cmd));
+		ft_printf("last>>>%s\n", ret);
+		argv_destroy(path, (void(*)(void *))free);
+		return (ret);
+	}
+	else
+	{
+		argv_destroy(path, (void(*)(void *))free);
+		return (NULL);
+	}
+}
+
+
+void exec_this(t_argv *cmd)
+{
+	char	*path;
+	t_argv	*env;
+
+//	folder_operations(cmd);
+	path = get_path(cmd->array[0]);
+//	if (!path);
+//		write_error();
+	ft_printf("%s\n", path);
+	env = g_et->array[0];
+	
+	ft_printf("cmd=%s\n", cmd->array[0]);
+	execve(path, cmd->array, env->array);
+}
+
+int	exec_all(t_argv *exec, int max_proc)
+{
+	int		pid;
+	int 	fd;
+	int 	i;
+	int		io[2];
+	t_argv	*trgt;
+
+	i = 0;
+	fd  = 0;
+	while (i  < max_proc)
+	{
+		if (-1 == argv_try(exec, "|", 0, (int (*)(void *, void *))ft_strcmp))
+			trgt = argv_splice(exec, 0, exec->len);
+		else
+		{
+			trgt = argv_splice(exec, 0, exec->try_index);
+			argv_del_one(exec, 0, (void (*)(void *))free);
+		}
+		pipe(io);
+		pid = fork();
+		if (pid == 0)
+		{
+			if (i != 0)
+			{
+				dup2(fd, 0);
+				close(fd);   // hocam bu gece yeterli sanırım :))))
+			}
+			if (i != max_proc - 1)
+				dup2(io[1], 1); // düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
+			close(io[0]);
+			close(io[1]);
+			exec_this(trgt); // bir değişkene de ihtiyacım var :)))) evet
+			exit(1);
+		}
+		argv_destroy(trgt, (void (*)(void *))free);
+		if (i != 0)
+			close(fd);
+		close(io[1]);  // bu calışır sanırım
+		fd = io[0];
+		if (i == max_proc -1)
+			close(fd);
+		++i;
+	}
+	return (wait_all(pid, max_proc));
 }
 
 
@@ -478,10 +630,17 @@ int	main(int argc, char **argv, char **envp)
 		add_history(line);
 		lexer(cmd, line);
 		free(line);
+<<<<<<< HEAD
 		builtin_tester(cmd);
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
 		//system("leaks minishell");
+=======
+		exec_all(cmd, find_procces_size(cmd));
+		//print_cmd(cmd);
+		argv_destroy(cmd, free);
+	///	system("leaks minishell");
+>>>>>>> refs/remotes/origin/main
 	}
 	return (0);
 }
