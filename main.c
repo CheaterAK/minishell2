@@ -107,16 +107,17 @@ int	ft_echo(t_argv *cmd)
 }
 
 
-int	ft_cd(t_argv *cmd) // env tan pathleri guncellemek lazim
+int	ft_cd(t_argv *cmd)
 {
 	char cwd[512];
 	char	*path;
+    char *pwd;
 	t_argv *env;
 
 	env = g_et->array[0];
 	if (cmd->len == 2)
 	{
-		
+
 		path = ft_strdup(cmd->array[1]);
 		if (0 == chdir(path))
 		{
@@ -124,6 +125,13 @@ int	ft_cd(t_argv *cmd) // env tan pathleri guncellemek lazim
 			env->try_index = 0;
 			getcwd(cwd, 512);
 			ft_printf("%s\n", cwd);
+            // update OLD_PWD from PWD
+			if (argv_try(env,"OLD_PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
+            {
+                pwd = get_env(strdup("PWD"));
+                argv_del_one(env, env->try_index, free);
+                env->array[env->try_index] = ft_strjoin("OLD_PWD=", pwd);
+            }
 			if (argv_try(env, "PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
 				argv_del_one(env, env->try_index, (void(*)(void *))free);
 			argv_insert(env, env->try_index, ft_strjoin("PWD=", cwd));
@@ -471,7 +479,7 @@ int	try_access(char *path, char *cmd)
 
 	str = str3join(ft_strdup(path), ft_strdup("/"), ft_strdup(cmd));
 	st = access(str, X_OK);
-	
+
 	ft_printf("tyr = %s\n", str);
 	free(str);
 	return (st);
@@ -566,7 +574,7 @@ int exec_this(t_argv *cmd)
 //		write_error();
 	ft_printf("%s\n", path);
 	env = g_et->array[0];
-	
+
 	ft_printf("cmd=%s\n", cmd->array[0]);
 	execve(path, cmd->array, env->array);
 }
