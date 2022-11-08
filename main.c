@@ -48,6 +48,37 @@ char	*get_env(char *str)
 	}
 }
 
+int compare_this(char *s1, char *s2)
+{
+	int res;
+	char *tmp;
+
+	tmp = strchr(s2, '=');
+	res = ft_strncmp(s2, s1, tmp - s2 + 1);
+	return (res);
+}
+
+int ft_export(t_argv *cmd)
+{
+	t_argv *env;
+	int i = 1;
+
+	env = g_et->array[0];
+	while (i < cmd->len)
+	{
+		env->try_index = 0;
+
+		if (argv_try(env, cmd->array[i], 0, (int (*)(void *, void *))compare_this) == 0)
+		{
+			argv_del_one(env,env->try_index, free);
+			argv_insert(env, env->try_index, strdup(cmd->array[i++]));
+		}
+		else
+			argv_push(env, strdup(cmd->array[i++]));
+	}
+	return (0);
+}
+
 int	ft_exit(t_argv *cmd)
 {
 	if (cmd->len = 1)
@@ -529,8 +560,8 @@ int	builtin_tester(t_argv *cmd)
 		return (ft_cd(cmd));
 	if (!ft_strcmp(cmd->array[0], "pwd"))
 		return (ft_pwd(cmd));
-	// if (!ft_strcmp(cmd->array[0], "export"))
-	//    return (ft_export(cmd));
+	if (!ft_strcmp(cmd->array[0], "export"))
+	    return (ft_export(cmd));
 	//if (!ft_strcmp(cmd->array[0], "unset"))
 	//    return (ft_unset(cmd));
 	if (!ft_strcmp(cmd->array[0], "env"))
@@ -648,7 +679,7 @@ int	main(int argc, char **argv, char **envp)
 	t_argv	*cmd;
 	t_argv	*env;
 
-	;
+
 	g_et = argv_new(NULL, NULL);
 	argv_push(g_et, argv_new((void **)envp, (void *(*)(void *))ft_strdup));
 	argv_push(g_et, argv_new(NULL, NULL));

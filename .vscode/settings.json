@@ -1,5 +1,6 @@
 {
 	"files.associations": {
-		"argv.h": "c"
+		"argv.h": "c",
+		"ft_printf.h": "c"
 	}
 }
