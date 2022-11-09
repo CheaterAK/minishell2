@@ -58,6 +58,15 @@ int	compare_this(char *s1, char *s2)
 	return (res);
 }
 
+void env_print(t_argv *env)
+{
+	int		i;
+
+	i = 0;
+	while (i < env->len)
+		ft_printf("declare -x %s\n", env->array[i++]);
+}
+
 int	ft_export(t_argv *cmd)
 {
 	t_argv	*env;
@@ -67,6 +76,11 @@ int	ft_export(t_argv *cmd)
 	i = 1;
 	status = 0;
 	env = g_et->array[0];
+	if (cmd->len == 1)
+	{
+		env_print(env);
+		return (0);
+	}
 	while (i < cmd->len)
 	{
 		env->try_index = 0;
