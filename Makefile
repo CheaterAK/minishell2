@@ -9,7 +9,7 @@ OBJS = $(addprefix $(OBJ_DIR), $(O_FILES))
 LIBFT_DIR = ./ft_printf/
 LIBFT =  $(addprefix $(LIBFT_DIR), libftprintf.a)
 
-CC =  gcc
+CC =  clang
 
 
 FLAGS = -g # -Wall -Werror -Wextr  #-fsanitize=address

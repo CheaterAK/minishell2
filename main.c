@@ -53,7 +53,7 @@ int compare_this(char *s1, char *s2)
 	int res;
 	char *tmp;
 
-	tmp = strchr(s2, '=');
+	tmp = ft_strchr(s2, '=');
 	res = ft_strncmp(s2, s1, tmp - s2 + 1);
 	return (res);
 }
@@ -71,10 +71,12 @@ int ft_export(t_argv *cmd)
 		if (argv_try(env, cmd->array[i], 0, (int (*)(void *, void *))compare_this) == 0)
 		{
 			argv_del_one(env,env->try_index, free);
-			argv_insert(env, env->try_index, strdup(cmd->array[i++]));
+			argv_insert(env, env->try_index, ft_strdup(cmd->array[i++]));
 		}
+		else if(valid)
+			argv_push(env, ft_strdup(cmd->array[i++]));
 		else
-			argv_push(env, strdup(cmd->array[i++]));
+			ft_printf("bash: export: `%s': not a valid identifier", cmd->array[i++]))
 	}
 	return (0);
 }
@@ -117,7 +119,7 @@ int	ft_echo(t_argv *cmd)
 	else
 	{
 		cmd->try_index = 0;
-		while (argv_try(cmd, "-n", i, (int (*)(void *, void *))strcmp) == 0)
+		while (argv_try(cmd, "-n", i, (int (*)(void *, void *))ft_strcmp) == 0)
 		{
 			n = 1;
 			i++;
@@ -155,7 +157,7 @@ int	ft_cd(t_argv *cmd)
 			if (argv_try(env, "OLDPWD=", 0, (int (*)(void *,
 							void *))env_cmp) == 0)
 			{
-				pwd = get_env(strdup("$PWD"));
+				pwd = get_env(ft_strdup("$PWD"));
 				argv_del_one(env, env->try_index, free);
 				argv_insert(env, env->try_index, ft_strjoin("OLDPWD=", pwd));
 				free(pwd);
@@ -695,6 +697,7 @@ int	main(int argc, char **argv, char **envp)
 	// fd operations >
 	// execve | building (edited)
 	status = 0;
+
 	while (1)
 	{
 		line = readline("$> ");
@@ -708,6 +711,7 @@ int	main(int argc, char **argv, char **envp)
 		cmd = argv_new(NULL, NULL);
 		add_history(line);
 		lexer(cmd, line);
+		free(line);
 		if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
 			&& is_builtin(cmd))
 			status = builtin_operation(cmd);
@@ -715,7 +719,7 @@ int	main(int argc, char **argv, char **envp)
 			exec_all(cmd, find_procces_size(cmd));
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
-		///	system("leaks minishell");
+			system("leaks minishell");
 	}
 	return (0);
 }
