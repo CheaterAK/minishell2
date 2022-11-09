@@ -48,37 +48,47 @@ char	*get_env(char *str)
 	}
 }
 
-int compare_this(char *s1, char *s2)
+int	compare_this(char *s1, char *s2)
 {
-	int res;
-	char *tmp;
+	int		res;
+	char	*tmp;
 
 	tmp = ft_strchr(s2, '=');
 	res = ft_strncmp(s2, s1, tmp - s2 + 1);
 	return (res);
 }
 
-int ft_export(t_argv *cmd)
+int	ft_export(t_argv *cmd)
 {
-	t_argv *env;
-	int i = 1;
+	t_argv	*env;
+	int		i;
+	int		status;
 
+	i = 1;
+	status = 0;
 	env = g_et->array[0];
 	while (i < cmd->len)
 	{
 		env->try_index = 0;
-
-		if (argv_try(env, cmd->array[i], 0, (int (*)(void *, void *))compare_this) == 0)
+		if (ft_isstring(cmd->array[i]))
+			++i;
+		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *,
+						void *))compare_this) == 0)
+			&& ft_is_valid_env(cmd->array[i]))
 		{
-			argv_del_one(env,env->try_index, free);
+			argv_del_one(env, env->try_index, free);
 			argv_insert(env, env->try_index, ft_strdup(cmd->array[i++]));
 		}
-		else if(valid)
+		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *, void *))compare_this) != 0 && ft_is_valid_env(cmd->array[i])))
 			argv_push(env, ft_strdup(cmd->array[i++]));
 		else
-			ft_printf("bash: export: `%s': not a valid identifier", cmd->array[i++]))
+		{
+			ft_printf("bash: export: `%s': not a valid identifier",
+					cmd->array[i++]);
+			status = 1;
+		}
 	}
-	return (0);
+	return (status);
 }
 
 int	ft_exit(t_argv *cmd)
@@ -563,7 +573,7 @@ int	builtin_tester(t_argv *cmd)
 	if (!ft_strcmp(cmd->array[0], "pwd"))
 		return (ft_pwd(cmd));
 	if (!ft_strcmp(cmd->array[0], "export"))
-	    return (ft_export(cmd));
+		return (ft_export(cmd));
 	//if (!ft_strcmp(cmd->array[0], "unset"))
 	//    return (ft_unset(cmd));
 	if (!ft_strcmp(cmd->array[0], "env"))
@@ -639,7 +649,7 @@ int	exec_all(t_argv *exec, int max_proc)
 			}
 			if (i != max_proc - 1)
 				dup2(io[1], 1);
-					// düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
+			// düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
 			close(io[0]);
 			close(io[1]);
 			exec_this(trgt); // bir değişkene de ihtiyacım var :)))) evet
@@ -681,7 +691,6 @@ int	main(int argc, char **argv, char **envp)
 	t_argv	*cmd;
 	t_argv	*env;
 
-
 	g_et = argv_new(NULL, NULL);
 	argv_push(g_et, argv_new((void **)envp, (void *(*)(void *))ft_strdup));
 	argv_push(g_et, argv_new(NULL, NULL));
@@ -697,7 +706,6 @@ int	main(int argc, char **argv, char **envp)
 	// fd operations >
 	// execve | building (edited)
 	status = 0;
-
 	while (1)
 	{
 		line = readline("$> ");
@@ -719,7 +727,7 @@ int	main(int argc, char **argv, char **envp)
 			exec_all(cmd, find_procces_size(cmd));
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
-			system("leaks minishell");
+		system("leaks minishell");
 	}
 	return (0);
 }

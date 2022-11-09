@@ -1,6 +1,8 @@
 {
 	"files.associations": {
 		"argv.h": "c",
-		"ft_printf.h": "c"
+		"ft_printf.h": "c",
+		"libft.h": "c",
+		"sstream": "c"
 	}
 }
