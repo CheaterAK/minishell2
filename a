@@ -1,1 +1,13 @@
-hello worldhello world
+tyr = /Users/akocabas/goinfre/.brew/bin/a
+tyr = /Users/akocabas/goinfre/.brew/bin/a
+tyr = /usr/local/bin/a
+tyr = /usr/bin/a
+tyr = /bin/a
+tyr = /usr/sbin/a
+tyr = /sbin/a
+tyr = /usr/local/munki/a
+tyr = /Library/Apple/usr/bin/a
+tyr = /Library/Frameworks/Mono.framework/Versions/Current/Commands/a
+tyr = /Users/akocabas/.fzf/bin/a
+(null)
+cmd=a

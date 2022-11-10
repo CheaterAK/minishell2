@@ -1,0 +1,13 @@
+tyr = /Users/akocabas/goinfre/.brew/bin/deneme
+tyr = /Users/akocabas/goinfre/.brew/bin/deneme
+tyr = /usr/local/bin/deneme
+tyr = /usr/bin/deneme
+tyr = /bin/deneme
+tyr = /usr/sbin/deneme
+tyr = /sbin/deneme
+tyr = /usr/local/munki/deneme
+tyr = /Library/Apple/usr/bin/deneme
+tyr = /Library/Frameworks/Mono.framework/Versions/Current/Commands/deneme
+tyr = /Users/akocabas/.fzf/bin/deneme
+(null)
+cmd=deneme

@@ -79,7 +79,7 @@ int	ft_export(t_argv *cmd)
 	if (cmd->len == 1)
 	{
 		env_print(env);
-			// export ciktisi gibi sirali olacak ve export edilmis env olmayan seylerde olacak
+		// export ciktisi gibi sirali olacak ve export edilmis env olmayan seylerde olacak
 		return (0);
 	}
 	while (i < cmd->len)
@@ -164,17 +164,26 @@ int	ft_echo(t_argv *cmd)
 	return (0);
 }
 
-int	ft_cd(t_argv *cmd)
+int	ft_cd(t_argv *cmd) //~ icin duzeltme gerekli calismiyor. // duzeltildi
 {
-	char	cwd[512];
-	char	*path;
-	char	*pwd;
-	t_argv	*env;
+	char cwd[512];
+	char *path;
+	char *pwd;
+	t_argv *env;
+	char *tmp;
 
 	env = g_et->array[0];
 	if (cmd->len == 2)
 	{
-		path = ft_strdup(cmd->array[1]);
+		tmp = ft_strdup(cmd->array[1]);
+		if (tmp[0] == '~')
+		{
+			path = str3join(get_env(ft_strdup("$HOME")), ft_strdup(""),
+					ft_strdup(tmp + 1));
+			free(tmp);
+		}
+		else
+			path = tmp;
 		if (0 == chdir(path))
 		{
 			free(path);
@@ -556,6 +565,9 @@ char	*get_path(char *cmd)
 	if (!ft_strncmp("/", cmd, 1) || !ft_strncmp("./", cmd, 2)
 		|| !ft_strncmp("../", cmd, 3))
 		return (ft_strdup(cmd));
+	if (!ft_strncmp("~", cmd, 1))
+		return (str3join(ft_strdup(getenv("$HOME")), ft_strdup("/"),
+				ft_strdup(cmd + 1)));
 	str = get_env(ft_strdup("$PATH"));
 	ret = NULL;
 	if (!*str)
@@ -619,12 +631,78 @@ int	is_builtin(t_argv *cmd)
 	return (0);
 }
 
+void	folder_operations(t_argv *cmd)
+{
+	int		io[2];
+	int		i;
+	char	*tmp;
+
+	i = 0;
+	printf("folder_operations = %s\n", getcwd(NULL, 0));
+	while (i < cmd->len)
+	{
+		cmd->try_index = 0;
+		if (argv_try(cmd, "<", cmd->try_index, (int (*)(void *,
+						void *))ft_strcmp) == 0)
+		{
+			tmp = str3join(getcwd(NULL, 512), ft_strdup("/"),
+					ft_strdup(cmd->array[cmd->try_index + 1]));
+			io[0] = open(tmp, O_RDONLY);
+			dup2(io[0], STDIN_FILENO);
+			close(io[0]);
+			argv_del_one(cmd, i, free);
+			argv_del_one(cmd, i, free);
+			free(tmp);
+		}
+		else if (argv_try(cmd, ">", cmd->try_index, (int (*)(void *,
+							void *))ft_strcmp) == 0)
+		{
+			tmp = str3join(getcwd(NULL, 512), ft_strdup("/"),
+					ft_strdup(cmd->array[cmd->try_index + 1]));
+			printf("tmp = %s\n", tmp);
+			io[1] = open(tmp, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			dup2(io[1], STDOUT_FILENO);
+			close(io[1]);
+			argv_del_one(cmd, i, free);
+			argv_del_one(cmd, i, free);
+			free(tmp);
+		}
+		else if (argv_try(cmd, ">>", cmd->try_index, (int (*)(void *,
+							void *))ft_strcmp) == 0)
+		{
+			tmp = str3join(getcwd(NULL, 512), ft_strdup("/"),
+					ft_strdup(cmd->array[cmd->try_index + 1]));
+			io[1] = open(tmp, O_WRONLY | O_CREAT | O_APPEND, 0644);
+			dup2(io[1], STDOUT_FILENO);
+			close(io[1]);
+			argv_del_one(cmd, i, free);
+			argv_del_one(cmd, i, free);
+			free(tmp);
+		}
+		else if (argv_try(cmd, "<<", cmd->try_index, (int (*)(void *,
+							void *))ft_strcmp) == 0)
+		{
+			printf("heredoc biz bilmiyoruz\n");
+			argv_del_one(cmd, i, free);
+			argv_del_one(cmd, i, free);
+			free(tmp);
+		}
+		else
+			i++;
+		if (io[0] == -1 || io[1] == -1)
+		{
+			perror("open: ");
+			exit(1);
+		}
+	}
+}
+
 int	exec_this(t_argv *cmd)
 {
 	char	*path;
 	t_argv	*env;
 
-	//	folder_operations(cmd);
+	folder_operations(cmd);
 	if (is_builtin(cmd))
 		return (builtin_tester(cmd));
 	path = get_path(cmd->array[0]);
@@ -636,21 +714,17 @@ int	exec_this(t_argv *cmd)
 	execve(path, cmd->array, env->array);
 }
 
-void	child_exec(int io[], t_argv *trgt, int start, int end)
+void	child_exec(int io[], t_argv *trgt, int start, int not_end)
 {
 	int	fd;
 
 	if (start)
-	{
-		dup2(fd, STDIN_FILENO);
-		close(fd); // hocam bu gece yeterli sanırım :))))
-	}
-	if (end)
+		dup2(io[0], STDIN_FILENO);
+	if (not_end)
 		dup2(io[1], STDOUT_FILENO);
-	// düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
 	close(io[0]);
 	close(io[1]);
-	exec_this(trgt); // bir değişkene de ihtiyacım var :)))) evet
+	exec_this(trgt);
 	exit(1);
 }
 
@@ -747,9 +821,10 @@ int	main(int argc, char **argv, char **envp)
 			status = builtin_operation(cmd);
 		else
 			exec_all(cmd, find_procces_size(cmd));
+		// path icin ~ eklemesi yapilacak.
 		//print_cmd(cmd);
 		argv_destroy(cmd, free);
-		system("leaks minishell");
+		//system("leaks minishell");
 	}
 	return (0);
 }
