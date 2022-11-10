@@ -58,9 +58,9 @@ int	compare_this(char *s1, char *s2)
 	return (res);
 }
 
-void env_print(t_argv *env)
+void	env_print(t_argv *env)
 {
-	int		i;
+	int	i;
 
 	i = 0;
 	while (i < env->len)
@@ -79,6 +79,7 @@ int	ft_export(t_argv *cmd)
 	if (cmd->len == 1)
 	{
 		env_print(env);
+			// export ciktisi gibi sirali olacak ve export edilmis env olmayan seylerde olacak
 		return (0);
 	}
 	while (i < cmd->len)
@@ -87,18 +88,20 @@ int	ft_export(t_argv *cmd)
 		if (ft_isstring(cmd->array[i]))
 			++i;
 		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *,
-						void *))compare_this) == 0)
-			&& ft_is_valid_env(cmd->array[i]))
+								void *))compare_this) == 0)
+				&& ft_is_valid_env(cmd->array[i]))
 		{
 			argv_del_one(env, env->try_index, free);
 			argv_insert(env, env->try_index, ft_strdup(cmd->array[i++]));
 		}
-		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *, void *))compare_this) != 0 && ft_is_valid_env(cmd->array[i])))
+		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *,
+								void *))compare_this) != 0
+					&& ft_is_valid_env(cmd->array[i])))
 			argv_push(env, ft_strdup(cmd->array[i++]));
 		else
 		{
 			ft_printf("bash: export: `%s': not a valid identifier",
-					cmd->array[i++]);
+						cmd->array[i++]);
 			status = 1;
 		}
 	}
@@ -633,6 +636,24 @@ int	exec_this(t_argv *cmd)
 	execve(path, cmd->array, env->array);
 }
 
+void	child_exec(int io[], t_argv *trgt, int start, int end)
+{
+	int	fd;
+
+	if (start)
+	{
+		dup2(fd, STDIN_FILENO);
+		close(fd); // hocam bu gece yeterli sanırım :))))
+	}
+	if (end)
+		dup2(io[1], STDOUT_FILENO);
+	// düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
+	close(io[0]);
+	close(io[1]);
+	exec_this(trgt); // bir değişkene de ihtiyacım var :)))) evet
+	exit(1);
+}
+
 int	exec_all(t_argv *exec, int max_proc)
 {
 	int		pid;
@@ -655,20 +676,7 @@ int	exec_all(t_argv *exec, int max_proc)
 		pipe(io);
 		pid = fork();
 		if (pid == 0)
-		{
-			if (i != 0)
-			{
-				dup2(fd, 0);
-				close(fd); // hocam bu gece yeterli sanırım :))))
-			}
-			if (i != max_proc - 1)
-				dup2(io[1], 1);
-			// düşünüyorum .... :) recursive bir loop olusturmak ve process leri birbirine baglamk
-			close(io[0]);
-			close(io[1]);
-			exec_this(trgt); // bir değişkene de ihtiyacım var :)))) evet
-			exit(1);
-		}
+			child_exec(io, trgt, (i != 0), (i != max_proc - 1));
 		argv_destroy(trgt, (void (*)(void *))free);
 		if (i != 0)
 			close(fd);
