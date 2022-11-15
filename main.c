@@ -18,7 +18,6 @@ int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 int	env_cmp(char *s1, char *s2)
 {
 	int		res;
-	char	*tmp;
 	char	*ret;
 
 	res = ft_strncmp(s2, s1, ft_strlen(s2));
@@ -58,13 +57,85 @@ int	compare_this(char *s1, char *s2)
 	return (res);
 }
 
-void	env_print(t_argv *env)
+char	**clone(t_argv *env, t_argv *exp)
 {
-	int	i;
+	char	**tmparr;
+	int		i;
+	int		j;
 
 	i = 0;
+	j = 0;
+	tmparr = (char **)malloc(sizeof(char *) * (env->len + exp->len + 1));
 	while (i < env->len)
-		ft_printf("declare -x %s\n", env->array[i++]);
+	{
+		tmparr[i] = (char *)ft_strdup(env->array[i]);
+		i++;
+	}
+	while (j < exp->len)
+	{
+		tmparr[i] = (char *)ft_strdup(exp->array[j]);
+		ft_printf("\n%s\n",tmparr[i]);
+		i++;
+		j++;
+	}
+	tmparr[i] = NULL;
+	return (tmparr);
+}
+
+void	sort_array(char **tmparr)
+{
+	int		i;
+	int		j;
+	char	*tmp;
+
+	i = 0;
+	while (tmparr[i])
+	{
+		j = i + 1;
+		while (tmparr[j])
+		{
+			if (ft_strcmp(tmparr[i], tmparr[j]) > 0)
+			{
+				tmp = tmparr[i];
+				tmparr[i] = tmparr[j];
+				tmparr[j] = tmp;
+			}
+			j++;
+		}
+		i++;
+	}
+}
+
+void	set_sorted_tmp(t_argv **tmp, t_argv *env, t_argv *exp)
+{
+	char	**tmparr;
+	int		i;
+
+	i = 0;
+	tmparr = clone(env, exp);
+	sort_array(tmparr);
+	*tmp = argv_new((void **)tmparr, (void *(*)(void *))ft_strdup);
+	i = 0;
+	while (tmparr[i])
+	{
+		free(tmparr[i]);
+		i++;
+	}
+	free(tmparr);
+}
+
+void	env_print(t_argv *env)
+{
+	int		i;
+	t_argv	*tmp;
+	t_argv	*exp;
+
+	exp = g_et->array[1];
+	set_sorted_tmp(&tmp, env, exp);
+	i = 0;
+	while (i < tmp->len)
+		ft_printf("declare -x %s\n", tmp->array[i++]);
+	argv_destroy(tmp, free);
 }
 
 int	ft_export(t_argv *cmd)
@@ -72,9 +143,11 @@ int	ft_export(t_argv *cmd)
 	t_argv	*env;
 	int		i;
 	int		status;
+	t_argv	*exp;
 
 	i = 1;
 	status = 0;
+	exp = g_et->array[1];
 	env = g_et->array[0];
 	if (cmd->len == 1)
 	{
@@ -85,8 +158,8 @@ int	ft_export(t_argv *cmd)
 	while (i < cmd->len)
 	{
 		env->try_index = 0;
-		if (ft_isstring(cmd->array[i]))// burada biraz sicmisim sorry :( // sicmamisim :)
-			++i;
+		if (ft_isstring(cmd->array[i])) // burada biraz sicmisim sorry :(
+			argv_push(exp, ft_strdup(cmd->array[i++]));
 		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *,
 								void *))compare_this) == 0)
 				&& ft_is_valid_env(cmd->array[i]))
@@ -108,9 +181,10 @@ int	ft_export(t_argv *cmd)
 	return (status);
 }
 
-int ft_unset(t_argv *cmd)
+int	ft_unset(t_argv *cmd)
 {
 	t_argv	*env;
+	t_argv	*exp;
 	int		i;
 	int		status;
 	char	*tmp;
@@ -118,17 +192,20 @@ int ft_unset(t_argv *cmd)
 	i = 1;
 	status = 0;
 	env = g_et->array[0];
+	exp = g_et->array[1];
 	while (i < cmd->len)
 	{
 		env->try_index = 0;
-		if (ft_isstring(cmd->array[i])) // orda sictiysam burdada sicmisimdir sorry :( tuy diktim uzerine :( sicip tuy dikmemisim :)
+		if (ft_isstring(cmd->array[i]))
+		// orda sictiysam burdada sicmisimdir sorry :( tuy diktim uzerine :( sicip tuy dikmemisim :)
 		{
 			tmp = ft_strjoin(cmd->array[i], "=");
-			printf("bash: unset: `%s': not a valid identifier\n", tmp);
-			printf("bash: unset: `%s': not a valid identifier\n", cmd->array[i]);
-		if (argv_try(env, tmp, env->try_index, (int (*)(void *,
+			if (argv_try(exp, cmd->array + i, 0, (int (*)(void *,
+							void *))ft_strcmp) == 0)
+				argv_del_one(exp, exp->try_index, free);
+			else if (argv_try(env, tmp, env->try_index, (int (*)(void *,
 								void *))compare_this) == 0)
-			argv_del_one(env, env->try_index, free);
+				argv_del_one(env, env->try_index, free);
 		}
 		else
 		{
@@ -138,7 +215,7 @@ int ft_unset(t_argv *cmd)
 		}
 		if (tmp)
 			free(tmp);
-			++i;
+		++i;
 	}
 	return (status);
 }
@@ -323,33 +400,14 @@ char	*implement(char *line_s, int status)
 	int		i;
 	int		len;
 	char	*line;
-	char 	*ret;
-
 
 	line = ft_strdup(line_s);
 	i = 0;
 	while (line[i])
 	{
-		if (line && line[i] == '$' && line[i+1] == '?')
+		if (line && line[i] == '$')
 		{
-			len = 1;
-			while (!ft_strchr(" <>|", line[i + len]) && line[i + len])
-			len++;
-			tmp = str3join(ft_substr(line, 0, i), ft_itoa(status),
-					ft_substr(line, i + len, ft_strlen(line) - i -len));
-			free(line);
-			line = tmp;
-		}
-		else if (line && line[i] == '$' && line[i+1] == '\0')
-		{
-			tmp = str3join(ft_substr(line, 0, i), ft_strdup("$"),
-					ft_substr(line, i + 1, ft_strlen(line) - i -1));
-			free(line);
-			line = tmp;
-		}
-		else if (line && line[i] == '$')
-		{
-			len = 1;
+			len = 0;
 			while (!ft_strchr(" <>|", line[i + len]) && line[i + len])
 				len++;
 			tmp = str3join(ft_substr(line, 0, i), get_env(ft_substr(&line[i], 0,
@@ -358,10 +416,9 @@ char	*implement(char *line_s, int status)
 			free(line);
 			line = tmp;
 		}
-		
 		i++;
 	}
-	return (ret);
+	return (line);
 }
 
 char	*clear_this(char *line, int c, int status)
@@ -659,7 +716,7 @@ int	builtin_tester(t_argv *cmd)
 	if (!ft_strcmp(cmd->array[0], "export"))
 		return (ft_export(cmd));
 	if (!ft_strcmp(cmd->array[0], "unset"))
-	    return (ft_unset(cmd));
+		return (ft_unset(cmd));
 	if (!ft_strcmp(cmd->array[0], "env"))
 		return (ft_env(cmd));
 	if (!ft_strcmp(cmd->array[0], "exit"))
@@ -688,8 +745,8 @@ int	is_builtin(t_argv *cmd)
 
 void	folder_operations(t_argv *cmd)
 {
-	int		io[2];
-	int		i;
+	int	io[2];
+	int	i;
 
 	i = 0;
 	while (i < cmd->len)
@@ -700,7 +757,8 @@ void	folder_operations(t_argv *cmd)
 		{
 			io[0] = open(ft_strdup(cmd->array[cmd->try_index + 1]), O_RDONLY);
 			if (io[0] == -1)
-				printf("minishell: %s: No such file or directory", cmd->array[cmd->try_index + 1]);
+				printf("minishell: %s: No such file or directory",
+						cmd->array[cmd->try_index + 1]);
 			dup2(io[0], STDIN_FILENO);
 			close(io[0]);
 			argv_del_one(cmd, cmd->try_index, free);
@@ -709,10 +767,13 @@ void	folder_operations(t_argv *cmd)
 		else if (argv_try(cmd, ">", cmd->try_index, (int (*)(void *,
 							void *))ft_strcmp) == 0)
 		{
-			io[1] = open(cmd->array[cmd->try_index + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			io[1] = open(cmd->array[cmd->try_index + 1],
+							O_WRONLY | O_CREAT | O_TRUNC,
+							0644);
 			if (io[1] == -1)
 			{
-				printf("minishell: %s: No such file or directory\n", cmd->array[cmd->try_index + 1]);
+				printf("minishell: %s: No such file or directory\n",
+						cmd->array[cmd->try_index + 1]);
 				exit(127);
 			}
 			dup2(io[1], STDOUT_FILENO);
@@ -723,10 +784,13 @@ void	folder_operations(t_argv *cmd)
 		else if (argv_try(cmd, ">>", cmd->try_index, (int (*)(void *,
 							void *))ft_strcmp) == 0)
 		{
-			io[1] = open(cmd->array[cmd->try_index + 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+			io[1] = open(cmd->array[cmd->try_index + 1],
+							O_WRONLY | O_CREAT | O_APPEND,
+							0644);
 			if (io[1] == -1)
 			{
-				printf("minishell: %s: No such file or directory", cmd->array[cmd->try_index + 1]);
+				printf("minishell: %s: No such file or directory",
+						cmd->array[cmd->try_index + 1]);
 				exit(127);
 			}
 			dup2(io[1], STDOUT_FILENO);
@@ -738,8 +802,8 @@ void	folder_operations(t_argv *cmd)
 							void *))ft_strcmp) == 0)
 		{
 			pipe(io);
-
-			write(io[1], cmd->array[cmd->try_index + 1], ft_strlen(cmd->array[cmd->try_index + 1]));
+			write(io[1], cmd->array[cmd->try_index + 1],
+					ft_strlen(cmd->array[cmd->try_index + 1]));
 			close(io[1]);
 			dup2(io[0], 0);
 			close(io[0]);
@@ -794,7 +858,6 @@ int	exec_all(t_argv *exec, int max_proc)
 	t_argv	*trgt;
 
 	i = 0;
-
 	while (i < max_proc)
 	{
 		if (-1 == argv_try(exec, "|", 0, (int (*)(void *, void *))ft_strcmp))
