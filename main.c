@@ -894,11 +894,41 @@ int	builtin_operation(t_argv *cmd)
 	return (ret);
 }
 
+char *check_token(t_argv *cmd)
+{
+	int i;
+	char *tmp;
+	char *tmp2;
+
+	i = 0;
+	while (i < cmd->len)
+	{
+		tmp = (char *)cmd->array[i];
+		if   (ft_strchr("<>|", tmp[0]))
+		{
+			tmp2 = cmd->array[++i];
+			if (*tmp2 == '\0' || !tmp2)
+			{
+				if (cmd->array[i + 1] == NULL  || cmd->len < i + 1)
+					return (ft_strdup("newline"));
+				tmp = cmd->array[++i];
+				if (ft_strchr("<>|", tmp[0])  || !tmp)
+					return (ft_strdup(tmp));
+				else if (*tmp == '\0' || !tmp)
+					return (ft_strdup("newline"));
+			}
+		}
+		i++;
+	}
+	return (NULL);
+}
+
 int	main(int argc, char **argv, char **envp)
 {
 	char	*line;
 	int		status;
 	int		i;
+	char *str;
 	t_argv	*cmd;
 	t_argv	*env;
 
@@ -932,15 +962,20 @@ int	main(int argc, char **argv, char **envp)
 		add_history(line);
 		lexer(cmd, line, status);
 		free(line);
-		if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
+		str = check_token(cmd);
+		if (str)
+			printf("minishell: syntax error near unexpected token `%s'\n", str);
+		else if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
 			&& is_builtin(cmd))
 			status = builtin_operation(cmd);
 		else
 			exec_all(cmd, find_procces_size(cmd));
 		// path icin ~ eklemesi yapilacak.
 		//print_cmd(cmd);
+		if (str)
+			free(str);
 		argv_destroy(cmd, free);
-		//system("leaks minishell");
+		system("leaks minishell");
 	}
 	return (0);
 }
