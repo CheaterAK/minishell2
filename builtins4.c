@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:36 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 13:27:24 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/17 20:11:58 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,7 +115,7 @@ int	ft_export(t_argv *cmd)
 		if (ft_isstring(cmd->array[i]))
 			exp_push(cmd, i);
 		else
-			status = env_push(cmd , exp, i, status);
+			status = env_push(cmd, exp, i, status);
 		++i;
 	}
 	return (status && 1);

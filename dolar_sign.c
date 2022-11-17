@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   dolar_sign.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/11/17 20:16:48 by akocabas          #+#    #+#             */
+/*   Updated: 2022/11/17 20:55:43 by akocabas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_printf/ft_printf.h"
 #include "minishell.h"
 #include <argv.h>
@@ -10,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
 char	*implement(char *line_s, int status)
 {
 	char	*tmp;
@@ -47,7 +60,7 @@ char	*implement(char *line_s, int status)
 				continue ;
 			}
 			len = 1;
-			while (!ft_strchr(" <>|$", line[i + len]) && line[i + len])
+			while (!ft_strchr(" <>|$\"\'", line[i + len]) && line[i + len])
 				len++;
 			tmp = str3join(ft_substr(line, 0, i), get_env(ft_substr(&line[i], 0,
 							len)), ft_substr(&line[i + len], 0,

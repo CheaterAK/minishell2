@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   array_utils.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akocabas <akocabas@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/09/15 12:49:35 by akocabas              #+#    #+#             */
-/*   Updated: 2022/09/15 12:49:36 by akocabas             ###   ########.fr       */
+/*   Created: 2022/11/17 20:15:43 by akocabas          #+#    #+#             */
+/*   Updated: 2022/11/17 20:15:44 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 

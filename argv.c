@@ -3,31 +3,31 @@
 /*                                                        :::      ::::::::   */
 /*   argv.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: akocabas <akocabas@student.42.fr>                  +#+  +:+       +#+        */
+/*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/09/15 12:49:16 by akocabas              #+#    #+#             */
-/*   Updated: 2022/11/03 00:01:45 by akocabas             ###   ########.fr       */
+/*   Created: 2022/11/17 20:14:15 by akocabas          #+#    #+#             */
+/*   Updated: 2022/11/17 20:15:05 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <argv.h>
 
-int argv_is(t_argv *argv, size_t index, int (*fptr)(int))
+int	argv_is(t_argv *argv, size_t index, int (*fptr)(int))
 {
-    int i;
-    char *tmp;
+	int		i;
+	char	*tmp;
 
-    if (argv == NULL || fptr == NULL ||index >= argv->len)
-        return (-1);
-    tmp = argv->array[index];
-    i = 0;
-    while (tmp[i])
-    {
-        if (fptr(tmp[i]) == 0)
-            return (0);
-        i++;
-    }
-    return (1);
+	if (argv == NULL || fptr == NULL || index >= argv->len)
+		return (-1);
+	tmp = argv->array[index];
+	i = 0;
+	while (tmp[i])
+	{
+		if (fptr(tmp[i]) == 0)
+			return (0);
+		i++;
+	}
+	return (1);
 }
 
 int	argv_destroy(t_argv *argv, void (*del)(void *))
@@ -39,8 +39,8 @@ int	argv_destroy(t_argv *argv, void (*del)(void *))
 	return (0);
 }
 
-int	argv_try(t_argv *argv, void *addr, size_t index,
-	int (*fptr)(void *, void *))
+int	argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
+			void *))
 {
 	if (argv == NULL || addr == NULL || fptr == NULL || argv->len <= index)
 		return (-1);

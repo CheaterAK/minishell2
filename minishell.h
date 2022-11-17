@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:33:54 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 16:16:25 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/17 20:36:58 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,10 +73,43 @@ int		builtin_exec(t_argv *cmd);
 int		builtin_op(t_argv *cmd);
 
 /*
+** exec2.c
+*/
+
+int		find_procces_size(t_argv *exec);
+char	*accessable(t_argv *path, char *cmd);
+t_argv	*get_trgt(t_argv *exec);
+
+/*
 ** redirects.c
 */
 
 void	folder_operations(t_argv *cmd);
+
+/*
+** token.c
+*/
+
+int		lexer(t_argv *cmd, char *line, int status);
+int		heredoc_check(t_argv *cmd);
+
+/*
+** main.c
+*/
+
+int		ft_isspace(char c);
+
+/*
+** queto.c
+*/
+
+char	*lexer_word_plus_quit(t_argv *cmd, char *line, int status);
+
+/*
+** dollar_sign.c
+*/
+
+char	*implement(char *line_s, int status);
 
 t_argv	*g_et;
 

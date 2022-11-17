@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 16:14:33 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 16:15:20 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/17 20:37:32 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,10 @@ int	try_access(char *path, char *cmd)
 	return (st);
 }
 
-char	*accesable(char *path, t_argv *cmd)
+char	*accessable(t_argv *path, char *cmd)
 {
+	char	*ret;
+
 	if (argv_try(path, cmd, 0, (int (*)(void *, void *))try_access) == 0)
 	{
 		ret = str3join(ft_strdup(path->array[path->try_index]), ft_strdup("/"),
@@ -62,4 +64,20 @@ char	*accesable(char *path, t_argv *cmd)
 		argv_destroy(path, (void (*)(void *))free);
 		return (NULL);
 	}
+}
+
+int	find_procces_size(t_argv *exec)
+{
+	int	i;
+
+	i = 0;
+	exec->try_index = 0;
+	while (!argv_try(exec, "|", exec->try_index, (int (*)(void *,
+				void *))ft_strcmp))
+	{
+		++i;
+		exec->try_index++;
+	}
+	++i;
+	return (i);
 }
