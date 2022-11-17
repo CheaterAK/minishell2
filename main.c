@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:26 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 12:32:27 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/17 16:32:00 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,62 +70,11 @@ int	jump_to_single_quote(char *line)
 	return (jump);
 }
 
-char	*implement(char *line_s, int status)
-{
-	char	*tmp;
-	int		i;
-	int		len;
-	char	*line;
-
-	line = ft_strdup(line_s);
-	i = 0;
-	while (line[i])
-	{
-		if (line && line[i] == '$')
-		{
-			if (line[i + 1] == '$')
-			{
-				tmp = str3join(ft_substr(line, 0, i), ft_itoa(getpid()),
-						ft_strdup(line + i + 2));
-				free(line);
-				line = tmp;
-				continue ;
-			}
-			else if (!line[i + 1])
-			{
-				tmp = str3join(ft_substr(line, 0, i), ft_strdup("$"),
-						ft_strdup(""));
-				free(line);
-				return (tmp);
-			}
-			else if (line[i + 1] == '?')
-			{
-				tmp = str3join(ft_substr(line, 0, i), ft_itoa(status),
-						ft_strdup(line + i + 2));
-				free(line);
-				line = tmp;
-				continue ;
-			}
-			len = 1;
-			while (!ft_strchr(" <>|$", line[i + len]) && line[i + len])
-				len++;
-			tmp = str3join(ft_substr(line, 0, i), get_env(ft_substr(&line[i], 0,
-							len)), ft_substr(&line[i + len], 0,
-						ft_strlen(&line[i + len])));
-			free(line);
-			line = tmp;
-		}
-		i++;
-	}
-	return (line);
-}
-
 char	*clear_this(char *line, int c, int status)
 {
 	int		i;
 	t_argv	*env;
 	char	*ret;
-	char	*str;
 
 	ret = line;
 	env = g_et->array[0];
@@ -135,8 +84,10 @@ char	*clear_this(char *line, int c, int status)
 		{
 			i = 0;
 			while (line[i])
-				line[i++] = line[i + 1];
+			{
+				line[i] = line[i + 1];
 				i++;
+			}
 		}
 		else
 			line++;
@@ -235,6 +186,7 @@ char	*lexer_token(t_argv *cmd, char *line)
 {
 	char	*str;
 
+	str = NULL;
 	if (is_token(line))
 	{
 		if (!ft_strncmp("<<", line, 2))
@@ -285,7 +237,7 @@ int	heredoc_check(t_argv *cmd)
 
 	cmd->try_index = 0;
 	while (argv_try(cmd, "<<", cmd->try_index, (int (*)(void *,
-				void *))ft_strcmp) == 0)
+					void *))ft_strcmp) == 0)
 	{
 		tmp = heredoc_operation(cmd->array[cmd->try_index + 1]);
 		argv_del_one(cmd, cmd->try_index + 1, free);
@@ -298,7 +250,6 @@ int	heredoc_check(t_argv *cmd)
 int	lexer(t_argv *cmd, char *line, int status)
 {
 	int		i;
-	char	*tmp;
 
 	i = 0;
 	while (line && *line)
@@ -322,7 +273,7 @@ int	find_procces_size(t_argv *exec)
 	i = 0;
 	exec->try_index = 0;
 	while (!argv_try(exec, "|", exec->try_index, (int (*)(void *,
-				void *))ft_strcmp))
+					void *))ft_strcmp))
 	{
 		++i;
 		exec->try_index++;
@@ -331,71 +282,7 @@ int	find_procces_size(t_argv *exec)
 	return (i);
 }
 
-int	wait_all(int pid, int max)
-{
-	int	i;
-	int	st;
-	int	last_pid;
-
-	i = 0;
-	while (i < max)
-	{
-		if (waitpid(0, &st, 0) == pid)
-			last_pid = st;
-		i++;
-	}
-	return (last_pid >> 8);
-}
-
-int	try_access(char *path, char *cmd)
-{
-	char	*str;
-	int		st;
-
-	str = str3join(ft_strdup(path), ft_strdup("/"), ft_strdup(cmd));
-	st = access(str, X_OK);
-	free(str);
-	return (st);
-}
-
-char	*get_path(char *cmd)
-{
-	t_argv	*path;
-	char	**tmp;
-	char	*str;
-	char	*ret;
-
-	if (!ft_strncmp("/", cmd, 1) || !ft_strncmp("./", cmd, 2)
-		|| !ft_strncmp("../", cmd, 3))
-		return (ft_strdup(cmd));
-	if (!ft_strncmp("~", cmd, 1))
-		return (str3join(ft_strdup(getenv("$HOME")), ft_strdup("/"),
-				ft_strdup(cmd + 1)));
-	str = get_env(ft_strdup("$PATH"));
-	ret = NULL;
-	if (!*str)
-	{
-		free(str);
-		return (NULL);
-	}
-	tmp = ft_split(str, ':');
-	free(str);
-	path = argv_new((void **)tmp, NULL);
-	if (argv_try(path, cmd, 0, (int (*)(void *, void *))try_access) == 0)
-	{
-		ret = str3join(ft_strdup(path->array[path->try_index]), ft_strdup("/"),
-				ft_strdup(cmd));
-		argv_destroy(path, (void (*)(void *))free);
-		return (ret);
-	}
-	else
-	{
-		argv_destroy(path, (void (*)(void *))free);
-		return (NULL);
-	}
-}
-
-int	builtin_tester(t_argv *cmd)
+int	builtin_exec(t_argv *cmd)
 {
 	if (!ft_strcmp(cmd->array[0], "echo"))
 		return (ft_echo(cmd));
@@ -433,107 +320,25 @@ int	is_builtin(t_argv *cmd)
 	return (0);
 }
 
-void	child_exec(int io[], t_argv *trgt, int start, int not_end)
+int builtin_op(t_argv *cmd)
 {
-	int		fd;
-	char	*path;
-	t_argv	*env;
-	int		status;
+	int		save;
+	int 	out;
+	int 	status;
 
-	path = get_path(trgt->array[0]);
-	if (!path)
-	{
-		ft_fprintf(2, "minishell: %s: command not found\n", trgt->array[0]);
-		exit(127);
-	}
-	if (is_builtin(trgt))
-		exit(builtin_tester(trgt));
-	folder_operations(trgt);
-	env = g_et->array[0];
-	status = execve(path, (char **)trgt->array, (char **)env->array);
-	if (-1 == status)
-	{
-		perror(trgt->array[0]);
-		exit(127);
-	}
-	close(io[0]);
-	exit(status);
-}
-
-t_argv	*get_trgt(t_argv *exec)
-{
-	t_argv	*trgt;
-
-	if (-1 == argv_try(exec, "|", 0, (int (*)(void *, void *))ft_strcmp))
-		trgt = argv_splice(exec, 0, exec->len);
-	else
-	{
-		trgt = argv_splice(exec, 0, exec->try_index);
-		argv_del_one(exec, 0, (void (*)(void *))free);
-	}
-	return (trgt);
-}
-
-void	exec_this(t_argv *cmd)
-{
-	char	*path;
-	t_argv	*env;
-
-	folder_operations(cmd);
-	path = get_path(cmd->array[0]);
-	if (!path)
-	{
-		ft_fprintf(1, "minishell: %s: command not found\n", cmd->array[0]);
-		exit(127);
-	}
-	env = g_et->array[0];
-	execve(path, cmd->array, env->array);
-}
-
-int	exec_all(t_argv *exec, int max_proc)
-{
-	int		pid;
-	int		fd;
-	int		i;
-	int		io[2];
-	t_argv	*trgt;
-
-	i = 0;
-	fd = 0;
-	while (i < max_proc)
-	{
-		trgt = get_trgt(exec);
-		pipe(io);
-		pid = fork();
-		if (pid == 0)
-		{
-			if (i != 0)
-			{
-				dup2(fd, 0);
-				close(fd);
-			}
-			if (i != max_proc - 1)
-				dup2(io[1], 1);
-			close(io[0]);
-			close(io[1]);
-			exec_this(trgt);
-			exit(1);
-		}
-		argv_destroy(trgt, (void (*)(void *))free);
-		if (i != 0)
-			close(fd);
-		close(io[1]);
-		fd = io[0];
-		if (i == max_proc - 1)
-			close(fd);
-		++i;
-	}
-	return (wait_all(pid, max_proc));
+	out = dup(1);
+	save = dup(0);
+	status = exec_this(cmd);
+	dup2(save, 0);
+	dup2(out, 1);
+	close(out);
+	close(save);
+	return (status);
 }
 
 char	*check_token(t_argv *cmd)
 {
-	int		i;
+	size_t		i;
 	char	*tmp;
 	char	*tmp2;
 
@@ -600,7 +405,7 @@ int	main(int argc, char **argv, char **envp)
 	status = 0;
 	while (1)
 	{
-		signal(SIGINT, signal_handler);
+		signal(SIGINT, (void (*)(int))signal_handler);
 		signal(SIGQUIT, SIG_IGN);
 		line = readline("$> ");
 		if (line == NULL)
@@ -622,7 +427,7 @@ int	main(int argc, char **argv, char **envp)
 		}
 		else if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
 				&& is_builtin(cmd))
-			status = builtin_tester(cmd);
+			status = builtin_op(cmd);
 		else
 			status = exec_all(cmd, find_procces_size(cmd));
 		if (str)

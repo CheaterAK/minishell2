@@ -5,6 +5,8 @@
 		"readline.h": "c",
 		"history.h": "c",
 		"complex": "c",
-		"ft_printf.h": "c"
+		"ft_printf.h": "c",
+		"stdio.h": "c",
+		"unistd.h": "c"
 	}
 }

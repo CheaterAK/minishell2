@@ -1,6 +1,6 @@
 NAME = minishell
 
-FILES = main.c utils.c argv_del.c argv_insert.c argv_utils.c argv.c array_copy.c array_del.c array_insert.c array_utils.c array.c builtins1.c builtins2.c builtins3.c builtins4.c builtins5.c
+FILES = main.c utils.c argv_del.c argv_insert.c argv_utils.c argv.c array_copy.c exec.c array_del.c array_insert.c array_utils.c array.c builtins1.c builtins2.c builtins3.c builtins4.c builtins5.c redirects.c
 
 O_FILES = $(FILES:.c=.o)
 OBJ_DIR = ./obj/
@@ -12,7 +12,7 @@ LIBFT =  $(addprefix $(LIBFT_DIR), libftprintf.a)
 CC =  gcc
 
 
-FLAGS = -g # -Wall -Werror -Wextr  #-fsanitize=address
+FLAGS = -g # -Wall -Werror -Wextra  #-fsanitize=address
 
 SECURE = $(addprefix $(LIBFT_DIR), ft_printf.h) minishell.h
 
@@ -21,7 +21,7 @@ SECURE = $(addprefix $(LIBFT_DIR), ft_printf.h) minishell.h
 all : $(NAME)
 
 $(NAME) : $(SECURE) $(LIBFT) $(OBJS)
-	$(CC) $(FLAGS) $(FILES) $(LIBFT) -o $(NAME) -lreadline -I./
+	$(CC) $(FLAGS) $(OBJS) $(LIBFT) -o $(NAME) -lreadline -I./
 $(LIBFT) :
 	make -C $(LIBFT_DIR)
 

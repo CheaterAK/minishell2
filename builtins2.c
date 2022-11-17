@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:42 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 12:32:43 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/17 13:32:06 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ int	ft_exit(t_argv *cmd)
 			exit(2);
 		}
 	}
+	exit(0);
 }
 
 int	is_valid_n(char *str)
