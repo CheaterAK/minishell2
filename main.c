@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/11/17 12:32:26 by akocabas          #+#    #+#             */
+/*   Updated: 2022/11/17 12:32:27 by akocabas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_printf/ft_printf.h"
 #include "minishell.h"
 #include <argv.h>
@@ -10,402 +22,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-#define burada ft_printf("burada \n");
 
-t_argv	*g_et;
 int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 				void *));
-
-int	env_cmp(char *s1, char *s2)
-{
-	int		res;
-	char	*ret;
-
-	res = ft_strncmp(s2, s1, ft_strlen(s2));
-	return (res);
-}
-
-char	*get_env(char *str)
-{
-	t_argv	*env;
-	char	*tmp;
-	char	*ret;
-
-	env = g_et->array[0];
-	tmp = ft_strjoin(str + 1, "=");
-	free(str);
-	if (argv_try(env, tmp, 0, (int (*)(void *, void *))env_cmp) == 0)
-	{
-		ret = ft_substr(env->array[env->try_index], ft_strlen(tmp),
-				ft_strlen(env->array[env->try_index]) - ft_strlen(tmp));
-		free(tmp);
-		return (ret);
-	}
-	else
-	{
-		free(tmp);
-		return (ft_strdup(""));
-	}
-}
-
-char	**clone(t_argv *env, t_argv *exp)
-{
-	char	**tmparr;
-	int		i;
-	int		j;
-
-	i = 0;
-	j = 0;
-	tmparr = (char **)malloc(sizeof(char *) * (env->len + exp->len + 1));
-	while (i < env->len)
-	{
-		tmparr[i] = (char *)ft_strdup(env->array[i]);
-		i++;
-	}
-	while (j < exp->len)
-	{
-		tmparr[i] = (char *)ft_strdup(exp->array[j]);
-		ft_printf("\n%s\n", tmparr[i]);
-		i++;
-		j++;
-	}
-	tmparr[i] = NULL;
-	return (tmparr);
-}
-
-void	sort_array(char **tmparr)
-{
-	int		i;
-	int		j;
-	char	*tmp;
-
-	i = 0;
-	while (tmparr[i])
-	{
-		j = i + 1;
-		while (tmparr[j])
-		{
-			if (ft_strcmp(tmparr[i], tmparr[j]) > 0)
-			{
-				tmp = tmparr[i];
-				tmparr[i] = tmparr[j];
-				tmparr[j] = tmp;
-			}
-			j++;
-		}
-		i++;
-	}
-}
-
-void	set_sorted_tmp(t_argv **tmp, t_argv *env, t_argv *exp)
-{
-	char	**tmparr;
-	int		i;
-
-	i = 0;
-	tmparr = clone(env, exp);
-	sort_array(tmparr);
-	*tmp = argv_new((void **)tmparr, (void *(*)(void *))ft_strdup);
-	i = 0;
-	while (tmparr[i])
-	{
-		free(tmparr[i]);
-		i++;
-	}
-	free(tmparr);
-}
-
-void	env_print(t_argv *env)
-{
-	int		i;
-	t_argv	*tmp;
-	t_argv	*exp;
-
-	exp = g_et->array[1];
-	set_sorted_tmp(&tmp, env, exp);
-	i = 0;
-	while (i < tmp->len)
-		ft_printf("declare -x %s\n", tmp->array[i++]);
-	argv_destroy(tmp, free);
-}
-
-int	compare_this(char *s1, char *s2)
-{
-	int		res;
-	char	*tmp;
-
-	tmp = ft_strchr(s2, '=');
-	res = ft_strncmp(s2, s1, tmp - s2 + 1);
-	return (res);
-}
-
-int compare_env(char *s1, char *s2)
-{
-	int		res;
-	char	*tmp;
-
-	tmp = ft_strjoin(s2, "=");
-	res = ft_strncmp(s1, tmp, ft_strlen(tmp));
-	free(tmp);
-	return (res);
-}
-
-int	compare_exp(char *s1, char *s2)
-{
-	int		res;
-	char	*tmp;
-
-	tmp = ft_strjoin(s1, "=");
-	res = ft_strncmp(s2, tmp, ft_strlen(tmp));
-	free(tmp);
-	return (res);
-}
-
-int	ft_export(t_argv *cmd)
-{
-	t_argv	*env;
-	int		i;
-	int		status;
-	t_argv	*exp;
-
-	i = 1;
-	status = 0;
-	exp = g_et->array[1];
-	env = g_et->array[0];
-	if (cmd->len == 1)
-	{
-		env_print(env);
-		// export ciktisi gibi sirali olacak ve export edilmis env olmayan seylerde olacak
-		return (0);
-	}
-	while (i < cmd->len)
-	{
-		env->try_index = 0;
-		exp->try_index = 0;
-		if (ft_isstring(cmd->array[i])) // burada biraz sicmisim sorry :(
-		{
-			if (argv_try(exp, cmd->array[i], 0, (int (*)(void *,
-							void *))ft_strcmp) && argv_try(env, cmd->array[i],
-					0, (int (*)(void *, void *))compare_env))
-				argv_push(exp, ft_strdup(cmd->array[i]));
-			else
-				++i;
-		}
-		else if (argv_try(exp, cmd->array[i], 0, (int (*)(void *,
-							void *))compare_exp) == 0)
-		{
-			argv_del_one(exp, exp->try_index, free);
-			argv_push(env, ft_strdup(cmd->array[i++]));
-		}
-		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *,
-								void *))compare_this) == 0)
-				&& ft_is_valid_env(cmd->array[i]))
-		{
-			argv_del_one(env, env->try_index, free);
-			argv_insert(env, env->try_index, ft_strdup(cmd->array[i++]));
-		}
-		else if ((argv_try(env, cmd->array[i], 0, (int (*)(void *,
-								void *))compare_this) != 0
-					&& ft_is_valid_env(cmd->array[i])))
-			argv_push(env, ft_strdup(cmd->array[i++]));
-		else
-		{
-			ft_printf("bash: export: `%s': not a valid identifier\n",
-						cmd->array[i++]);
-			status = 1;
-		}
-	}
-	return (status);
-}
-
-int	ft_unset(t_argv *cmd)
-{
-	t_argv	*env;
-	t_argv	*exp;
-	int		i;
-	int		status;
-	char	*tmp;
-
-	i = 1;
-	status = 0;
-	env = g_et->array[0];
-	exp = g_et->array[1];
-	while (i < cmd->len)
-	{
-		env->try_index = 0;
-		if (ft_isstring(cmd->array[i]))
-		// orda sictiysam burdada sicmisimdir sorry :( tuy diktim uzerine :( sicip tuy dikmemisim :)
-		{
-			tmp = ft_strjoin(cmd->array[i], "=");
-			if (argv_try(exp, cmd->array + i, 0, (int (*)(void *,
-							void *))ft_strcmp) == 0)
-				argv_del_one(exp, exp->try_index, free);
-			else if (argv_try(env, tmp, env->try_index, (int (*)(void *,
-								void *))compare_this) == 0)
-				argv_del_one(env, env->try_index, free);
-		}
-		else
-		{
-			ft_printf("bash: unset: `%s': not a valid identifier\n",
-						cmd->array[i++]);
-			status = 1;
-		}
-		if (tmp)
-			free(tmp);
-		++i;
-	}
-	return (status);
-}
-
-int	ft_exit(t_argv *cmd)
-{
-	if (cmd->len == 1)
-		exit(0);
-	else if (cmd->len >= 2)
-	{
-		if (argv_is(cmd, 1, (int (*)(int))ft_isdigit) == 1)
-		{
-			if (cmd->len > 2)
-			{
-				ft_printf("exit: too many arguments\n");
-				return (1);
-			}
-			else
-				exit(ft_atoi(cmd->array[1]));
-		}
-		else
-		{
-			ft_printf("exit: %s: numeric argument required\n",
-						(char *)cmd->array[1]);
-			exit(2);
-		}
-	}
-	return (-1);
-}
-
-int is_valid_n(char *str)
-{
-	int i;
-
-	i = 0;
-	if (str[i] == '-')
-		++i;
-	while (str[i])
-	{
-		if (str[i] == 'n')
-			++i;
-		else
-			return (0);
-	}
-	return (1);
-}
-
-int	ft_echo(t_argv *cmd)
-{
-	int	i;
-	int	n;
-
-	i = 1;
-	n = 0;
-	if (cmd->len == 1)
-		ft_printf("\n");
-	else
-	{
-		cmd->try_index = 0;
-		while (i < cmd->len)
-		{
-			if (is_valid_n(cmd->array[i]))
-				{n = 1;++i;}
-			else
-				break ;
-		}
-		while (i < cmd->len)
-		{
-			ft_printf("%s", cmd->array[i]);
-			if (i < cmd->len - 1)
-				ft_printf(" ");
-			i++;
-		}
-		if (n == 0)
-			ft_printf("\n");
-	}
-	return (0);
-}
-
-int	ft_cd(t_argv *cmd) //~ icin duzeltme gerekli calismiyor. // duzeltildi
-{
-	char cwd[512];
-	char *path;
-	char *pwd;
-	t_argv *env;
-	char *tmp;
-
-	env = g_et->array[0];
-	if (cmd->len == 2)
-	{
-		tmp = ft_strdup(cmd->array[1]);
-		if (tmp[0] == '~')
-		{
-			path = str3join(get_env(ft_strdup("$HOME")), ft_strdup(""),
-					ft_strdup(tmp + 1));
-			free(tmp);
-		}
-		else
-			path = tmp;
-		if (0 == chdir(path))
-		{
-			free(path);
-			env->try_index = 0;
-			getcwd(cwd, 512);
-			if (argv_try(env, "OLDPWD=", 0, (int (*)(void *,
-							void *))env_cmp) == 0)
-			{
-				pwd = get_env(ft_strdup("$PWD"));
-				argv_del_one(env, env->try_index, free);
-				argv_insert(env, env->try_index, ft_strjoin("OLDPWD=", pwd));
-				free(pwd);
-			}
-			env->try_index = 0;
-			if (argv_try(env, "PWD=", 0, (int (*)(void *, void *))env_cmp) == 0)
-				argv_del_one(env, env->try_index, (void (*)(void *))free);
-			argv_insert(env, env->try_index, ft_strjoin("PWD=", cwd));
-		}
-		else
-		{
-			ft_printf("minishell: cd: %s: No such file or directory\n", path);
-			free(path);
-			return (1);
-		}
-	}
-	else
-	{
-		ft_printf("minishell: cd: Need a directory\n");
-		return (1);
-	}
-	return (0);
-}
-
-int	ft_pwd(t_argv *cmd)
-{
-	char	*path;
-
-	path = getcwd(NULL, 0);
-	ft_printf("%s\n", path);
-	free(path);
-	return (0);
-}
-
-int	ft_env(t_argv *cmd)
-{
-	t_argv	*env;
-	int		i;
-
-	i = 0;
-	env = g_et->array[0];
-	while (i < env->len)
-		ft_printf("%s\n", env->array[i++]);
-	return (0);
-}
 
 int		jump_to_single_quote(char *line);
 
@@ -429,6 +48,7 @@ int	jump_to_double_quote(char *line)
 	}
 	return (jump);
 }
+
 int	jump_to_single_quote(char *line)
 {
 	int	jump;
@@ -515,10 +135,8 @@ char	*clear_this(char *line, int c, int status)
 		{
 			i = 0;
 			while (line[i])
-			{
-				line[i] = line[i + 1];
+				line[i++] = line[i + 1];
 				i++;
-			}
 		}
 		else
 			line++;
@@ -553,7 +171,7 @@ char	*lexer_quote(char **string, int status)
 			ret = clear_this(res, '\'', status);
 		free(res);
 		return (ret);
-	};
+	}
 	return (NULL);
 }
 
@@ -635,7 +253,7 @@ char	*lexer_token(t_argv *cmd, char *line)
 	return (line);
 }
 
-char	*heredoc_op(char *line)
+char	*heredoc_operation(char *line)
 {
 	char	*str;
 	char	*read;
@@ -643,6 +261,8 @@ char	*heredoc_op(char *line)
 
 	save = dup(0);
 	str = ft_strdup("");
+	if (!line || !*line)
+		return (str);
 	while (1)
 	{
 		read = readline("> ");
@@ -657,6 +277,22 @@ char	*heredoc_op(char *line)
 	dup2(save, 0);
 	close(save);
 	return (str);
+}
+
+int	heredoc_check(t_argv *cmd)
+{
+	char	*tmp;
+
+	cmd->try_index = 0;
+	while (argv_try(cmd, "<<", cmd->try_index, (int (*)(void *,
+				void *))ft_strcmp) == 0)
+	{
+		tmp = heredoc_operation(cmd->array[cmd->try_index + 1]);
+		argv_del_one(cmd, cmd->try_index + 1, free);
+		argv_insert(cmd, cmd->try_index + 1, tmp);
+		cmd->try_index++;
+	}
+	return (0);
 }
 
 int	lexer(t_argv *cmd, char *line, int status)
@@ -676,40 +312,17 @@ int	lexer(t_argv *cmd, char *line, int status)
 		while (ft_isspace(*line))
 			line++;
 	}
-	cmd->try_index = 0;
-	while (argv_try(cmd, "<<", cmd->try_index, (int (*)(void *,
-					void *))ft_strcmp) == 0)
-	{
-		tmp = heredoc_op(cmd->array[cmd->try_index + 1]);
-		argv_del_one(cmd, cmd->try_index + 1, free);
-		argv_insert(cmd, cmd->try_index + 1, tmp);
-		cmd->try_index++;
-	}
 	return (0);
-}
-
-//print all cmd line from t_argv
-void	print_cmd(t_argv *cmd)
-{
-	int	i;
-
-	printf("\n");
-	i = 0;
-	while (cmd->array[i])
-	{
-		printf("---->%s\n", cmd->array[i]);
-		i++;
-	}
-	printf("\n");
 }
 
 int	find_procces_size(t_argv *exec)
 {
-	int i; // anlamadım  evet
+	int	i;
+
 	i = 0;
 	exec->try_index = 0;
 	while (!argv_try(exec, "|", exec->try_index, (int (*)(void *,
-					void *))ft_strcmp))
+				void *))ft_strcmp))
 	{
 		++i;
 		exec->try_index++;
@@ -820,159 +433,102 @@ int	is_builtin(t_argv *cmd)
 	return (0);
 }
 
-void	folder_operations(t_argv *cmd)
+void	child_exec(int io[], t_argv *trgt, int start, int not_end)
 {
-	int	io[2];
-	int	i;
-
-	i = 0;
-	while (i < cmd->len)
-	{
-		cmd->try_index = 0;
-		if (argv_try(cmd, "<", cmd->try_index, (int (*)(void *,
-						void *))ft_strcmp) == 0)
-		{
-			io[0] = open(ft_strdup(cmd->array[cmd->try_index + 1]), O_RDONLY);
-			if (io[0] == -1)
-				printf("minishell: %s: No such file or directory",
-						cmd->array[cmd->try_index + 1]);
-			dup2(io[0], STDIN_FILENO);
-			close(io[0]);
-			argv_del_one(cmd, cmd->try_index, free);
-			argv_del_one(cmd, cmd->try_index, free);
-		}
-		else if (argv_try(cmd, ">", cmd->try_index, (int (*)(void *,
-							void *))ft_strcmp) == 0)
-		{
-			io[1] = open(cmd->array[cmd->try_index + 1],
-							O_WRONLY | O_CREAT | O_TRUNC,
-							0644);
-			if (io[1] == -1)
-			{
-				printf("minishell: %s: No such file or directory\n",
-						cmd->array[cmd->try_index + 1]);
-				exit(127);
-			}
-			dup2(io[1], STDOUT_FILENO);
-			close(io[1]);
-			argv_del_one(cmd, cmd->try_index, free);
-			argv_del_one(cmd, cmd->try_index, free);
-		}
-		else if (argv_try(cmd, ">>", cmd->try_index, (int (*)(void *,
-							void *))ft_strcmp) == 0)
-		{
-			io[1] = open(cmd->array[cmd->try_index + 1],
-							O_WRONLY | O_CREAT | O_APPEND,
-							0644);
-			if (io[1] == -1)
-			{
-				printf("minishell: %s: No such file or directory",
-						cmd->array[cmd->try_index + 1]);
-				exit(127);
-			}
-			dup2(io[1], STDOUT_FILENO);
-			close(io[1]);
-			argv_del_one(cmd, cmd->try_index, free);
-			argv_del_one(cmd, cmd->try_index, free);
-		}
-		else if (argv_try(cmd, "<<", cmd->try_index, (int (*)(void *,
-							void *))ft_strcmp) == 0)
-		{
-			pipe(io);
-			write(io[1], cmd->array[cmd->try_index + 1],
-					ft_strlen(cmd->array[cmd->try_index + 1]));
-			close(io[1]);
-			dup2(io[0], 0);
-			close(io[0]);
-			argv_del_one(cmd, cmd->try_index, free);
-			argv_del_one(cmd, cmd->try_index, free);
-		}
-		else
-			i++;
-	}
-}
-
-int	exec_this(t_argv *cmd)
-{
+	int		fd;
 	char	*path;
 	t_argv	*env;
 	int		status;
 
-	if (is_builtin(cmd))
-		return (builtin_tester(cmd));
-	path = get_path(cmd->array[0]);
+	path = get_path(trgt->array[0]);
 	if (!path)
 	{
-		ft_printf("minishell: %s: command not found\n", cmd->array[0]);
-		exit (127);
-	}
-	folder_operations(cmd);
-	env = g_et->array[0];
-	status = execve(path, (char **)cmd->array, (char **)env->array);
-	if (-1 == status)
-	{
+		ft_fprintf(2, "minishell: %s: command not found\n", trgt->array[0]);
 		exit(127);
 	}
+	if (is_builtin(trgt))
+		exit(builtin_tester(trgt));
+	folder_operations(trgt);
+	env = g_et->array[0];
+	status = execve(path, (char **)trgt->array, (char **)env->array);
+	if (-1 == status)
+	{
+		perror(trgt->array[0]);
+		exit(127);
+	}
+	close(io[0]);
 	exit(status);
 }
 
-void	child_exec(int io[], t_argv *trgt, int start, int not_end)
+t_argv	*get_trgt(t_argv *exec)
 {
-	int	fd;
+	t_argv	*trgt;
 
-	if (start)
-		dup2(io[0], STDIN_FILENO);
-	if (not_end)
-		dup2(io[1], STDOUT_FILENO);
-	close(io[0]);
-	close(io[1]);
-	exec_this(trgt);
+	if (-1 == argv_try(exec, "|", 0, (int (*)(void *, void *))ft_strcmp))
+		trgt = argv_splice(exec, 0, exec->len);
+	else
+	{
+		trgt = argv_splice(exec, 0, exec->try_index);
+		argv_del_one(exec, 0, (void (*)(void *))free);
+	}
+	return (trgt);
+}
+
+void	exec_this(t_argv *cmd)
+{
+	char	*path;
+	t_argv	*env;
+
+	folder_operations(cmd);
+	path = get_path(cmd->array[0]);
+	if (!path)
+	{
+		ft_fprintf(1, "minishell: %s: command not found\n", cmd->array[0]);
+		exit(127);
+	}
+	env = g_et->array[0];
+	execve(path, cmd->array, env->array);
 }
 
 int	exec_all(t_argv *exec, int max_proc)
 {
 	int		pid;
+	int		fd;
 	int		i;
 	int		io[2];
 	t_argv	*trgt;
-	int		status;
 
 	i = 0;
+	fd = 0;
 	while (i < max_proc)
 	{
-		if (-1 == argv_try(exec, "|", 0, (int (*)(void *, void *))ft_strcmp))
-			trgt = argv_splice(exec, 0, exec->len);
-		else
-		{
-			trgt = argv_splice(exec, 0, exec->try_index);
-			argv_del_one(exec, 0, (void (*)(void *))free);
-		}
+		trgt = get_trgt(exec);
 		pipe(io);
 		pid = fork();
 		if (pid == 0)
-			child_exec(io, trgt, (i != 0), (i != max_proc - 1));
+		{
+			if (i != 0)
+			{
+				dup2(fd, 0);
+				close(fd);
+			}
+			if (i != max_proc - 1)
+				dup2(io[1], 1);
+			close(io[0]);
+			close(io[1]);
+			exec_this(trgt);
+			exit(1);
+		}
 		argv_destroy(trgt, (void (*)(void *))free);
-		close(io[1]); // bu calışır sanırım
+		if (i != 0)
+			close(fd);
+		close(io[1]);
+		fd = io[0];
+		if (i == max_proc - 1)
+			close(fd);
 		++i;
 	}
-	status = wait_all(pid, max_proc);
-	return (status);
-}
-
-int	builtin_operation(t_argv *cmd)
-{
-	int	in;
-	int	out;
-	int	ret;
-
-	in = dup(0);
-	out = dup(1);
-	ret = exec_this(cmd);
-	dup2(in, 0);
-	dup2(out, 1);
-	close(in);
-	close(out);
-	return (ret);
+	return (wait_all(pid, max_proc));
 }
 
 char	*check_token(t_argv *cmd)
@@ -1008,19 +564,16 @@ void	*signal_handler(int sig)
 {
 	if (sig == SIGINT)
 	{
-		ft_printf("\n");
-		rl_on_new_line();
-		rl_redisplay();
-		ft_printf("$> ");
+		ioctl(0, TIOCSTI, "$> ");
 	}
 	else if (sig == SIGQUIT)
 	{
-		ioctl(0, TIOCSTI);
+		ioctl(0, TIOCSTI, "$> ");
 	}
 	return (0);
 }
 
-int check_line(char *line)
+int	check_line(char *line)
 {
 	while (line && *line)
 	{
@@ -1036,7 +589,6 @@ int	main(int argc, char **argv, char **envp)
 {
 	char	*line;
 	int		status;
-	int		i;
 	char	*str;
 	t_argv	*cmd;
 	t_argv	*env;
@@ -1045,21 +597,11 @@ int	main(int argc, char **argv, char **envp)
 	argv_push(g_et, argv_new((void **)envp, (void *(*)(void *))ft_strdup));
 	argv_push(g_et, argv_new(NULL, NULL));
 	env = g_et->array[0];
-	// Get_line >
-	// lexer >
-	// parser >
-	// "' operation >
-	// here doc operation >
-	// make group for command >
-	// pipe operation >
-	// open $ >
-	// fd operations >
-	// execve | building (edited)
 	status = 0;
 	while (1)
 	{
-		// signal(SIGINT, signal_handler);
-		// signal(SIGQUIT, signal_handler);
+		signal(SIGINT, signal_handler);
+		signal(SIGQUIT, SIG_IGN);
 		line = readline("$> ");
 		if (line == NULL)
 			break ;
@@ -1073,19 +615,19 @@ int	main(int argc, char **argv, char **envp)
 		lexer(cmd, line, status);
 		free(line);
 		str = check_token(cmd);
-		if (str)
+		if (str || heredoc_check(cmd))
+		{
 			printf("minishell: syntax error near unexpected token `%s'\n", str);
+			status = 258;
+		}
 		else if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
 				&& is_builtin(cmd))
-			status = builtin_operation(cmd);
+			status = builtin_tester(cmd);
 		else
 			status = exec_all(cmd, find_procces_size(cmd));
-		// path icin ~ eklemesi yapilacak.
-		//print_cmd(cmd);
 		if (str)
 			free(str);
 		argv_destroy(cmd, free);
-		//system("leaks minishell");
 	}
 	return (0);
 }

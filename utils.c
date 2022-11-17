@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2022/11/17 12:32:10 by akocabas          #+#    #+#             */
+/*   Updated: 2022/11/17 12:32:11 by akocabas         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "ft_printf/ft_printf.h"
 #include "minishell.h"
 #include <readline/history.h>
@@ -68,31 +80,13 @@ int	ft_is_valid_env(const char *str)
 	return (0);
 }
 
-int	ft_is_builtins(const char *str)
+int	ft_isstring(const char *str)
 {
-	if (ft_strcmp(str, "echo") == 0)
-		return (1);
-	if (ft_strcmp(str, "cd") == 0)
-		return (1);
-	if (ft_strcmp(str, "pwd") == 0)
-		return (1);
-	if (ft_strcmp(str, "export") == 0)
-		return (1);
-	if (ft_strcmp(str, "unset") == 0)
-		return (1);
-	if (ft_strcmp(str, "env") == 0)
-		return (1);
-	if (ft_strcmp(str, "exit") == 0)
-		return (1);
-	return (0);
-}
-int ft_isstring(const char *str)
-{
-	int i;
+	int	i;
 
 	i = 0;
 	if (ft_isdigit(str[0]) || str[0] == '=')
-				return (0);
+		return (0);
 	while (ft_isalnum(str[i]) || str[i] == '_')
 		i++;
 	if (str[i] == '\0')

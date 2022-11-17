@@ -1,6 +1,6 @@
 NAME = minishell
 
-FILES = main.c utils.c argv_del.c argv_insert.c argv_utils.c argv.c array_copy.c array_del.c array_insert.c array_utils.c array.c
+FILES = main.c utils.c argv_del.c argv_insert.c argv_utils.c argv.c array_copy.c array_del.c array_insert.c array_utils.c array.c builtins1.c builtins2.c builtins3.c builtins4.c builtins5.c
 
 O_FILES = $(FILES:.c=.o)
 OBJ_DIR = ./obj/
