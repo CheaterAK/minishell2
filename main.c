@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:26 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 20:12:42 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 03:32:26 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,7 +114,14 @@ int	main(int argc, char **argv, char **envp)
 		}
 		cmd = argv_new(NULL, NULL);
 		add_history(line);
-		lexer(cmd, line, status);
+		if (lexer(cmd, line, status))
+		{
+			free(line);
+			argv_destroy(cmd, free);
+			ft_fprintf(2, "minishell: syntax error detected an unclosed quote(s)\n");
+			status = 258;
+			continue ;
+		}
 		free(line);
 		str = check_token(cmd);
 		if (str || heredoc_check(cmd))
