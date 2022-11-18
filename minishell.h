@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:33:54 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/18 12:37:53 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:10:02 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,6 +127,14 @@ char	*jump_to_double_quote(char *line);
 */
 
 char	*implement(char *line_s, int status);
+
+/*
+** control.c
+*/
+
+int	check_line(char *line);
+char	*check_token(t_argv *cmd);
+int	ft_isspace(char c);
 
 t_argv	*g_et;
 

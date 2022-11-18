@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:26 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/18 15:19:32 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:18:42 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,8 +35,7 @@ void	signal_handler(int sig)
 	rl_on_new_line();
 	rl_redisplay();
 }
-
-char	*quote_err(char **line, t_argv *cmd, int *status)
+char	*quote_err(char *line, t_argv *cmd, int *status)
 {
 	free(line);
 	argv_destroy(cmd, free);
@@ -59,7 +58,7 @@ t_argv	*get_cmd(char *line, int *status)
 	cmd = argv_new(NULL, NULL);
 	add_history(line);
 	if (lexer(cmd, line, *status))
-		return (quote_err(&line, cmd, status));
+		return (quote_err(line, cmd, status));
 	free(line);
 	str = check_token(cmd);
 	if (str || heredoc_check(cmd))
