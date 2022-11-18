@@ -1,6 +1,6 @@
 NAME = minishell
 
-FILES = main.c utils.c argv_del.c argv_insert.c argv_utils.c argv.c array_copy.c exec.c array_del.c array_insert.c array_utils.c array.c builtins1.c builtins2.c builtins3.c builtins4.c builtins5.c dolar_sign.c redirects.c token.c queto.c exec2.c builtin_exec.c
+FILES = quote2.c main.c utils.c argv_del.c argv_insert.c argv_utils.c argv.c array_copy.c exec.c array_del.c array_insert.c array_utils.c array.c builtins1.c builtins2.c builtins3.c builtins4.c builtins5.c dolar_sign.c redirects.c token.c quote.c control.c exec2.c builtin_exec.c
 
 O_FILES = $(FILES:.c=.o)
 OBJ_DIR = ./obj/
@@ -10,7 +10,8 @@ LIBFT_DIR = ./ft_printf/
 LIBFT =  $(addprefix $(LIBFT_DIR), libftprintf.a)
 
 CC =  gcc
-
+READLINE_LIB = -L${HOME}/goinfre/.brew/opt/readline/lib
+READLINE_INC = -I${HOME}/goinfre/.brew/opt/readline/include
 
 FLAGS = -g # -Wall -Werror -Wextra  #-fsanitize=address
 
@@ -21,13 +22,14 @@ SECURE = $(addprefix $(LIBFT_DIR), ft_printf.h) minishell.h
 all : $(NAME)
 
 $(NAME) : $(SECURE) $(LIBFT) $(OBJS)
-	$(CC) $(FLAGS) $(OBJS) $(LIBFT) -o $(NAME) -lreadline -I./
+	$(CC) $(FLAGS) $(OBJS) $(LIBFT) -o $(NAME) -I./ -lreadline $(READLINE_LIB)
+ # -l/goinfre/akocabas/.brew/Cellar/readline/8.2.1/lib -I./ -I/goinfre/akocabas/.brew/Cellar/readline/8.2.1/lib/include/readline
 $(LIBFT) :
 	make -C $(LIBFT_DIR)
 
 $(OBJ_DIR)%.o: %.c
 	@mkdir -p $(OBJ_DIR)
-	@$(CC) $(FLAGS) -c $< -o $@ -I./ -g
+	@$(CC) $(FLAGS) -c $< -o $@  -I./ $(READLINE_INC)
 
 
 

@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 20:03:45 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 20:32:22 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 12:31:19 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,8 @@ char	*heredoc_operation(char *line)
 		return (str);
 	while (1)
 	{
+		signal(SIGINT, (void (*)(int))signal_handler);
+		signal(SIGQUIT, SIG_IGN);
 		read = readline("> ");
 		if (!read)
 			break ;
@@ -105,7 +107,7 @@ int	lexer(t_argv *cmd, char *line, int status)
 		line = lexer_token(cmd, line);
 		while (ft_isspace(*line))
 			line++;
-		line = lexer_word_plus_quit(cmd, line, status);
+		line = lexer_word_plus_quote(cmd, line, status);
 		if (line == NULL)
 			return (-1);
 		while (ft_isspace(*line))

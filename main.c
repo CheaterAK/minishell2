@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:26 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/18 03:32:26 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 15:19:32 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,65 +26,80 @@
 int		argv_try(t_argv *argv, void *addr, size_t index, int (*fptr)(void *,
 				void *));
 
-int	ft_isspace(char c)
+void	signal_handler(int sig)
 {
-	if (c == ' ' || c == '\t')
-		return (1);
-	return (0);
+	(void)sig;
+	g_et->try_index = 1;
+	ft_printf("\n");
+	rl_replace_line("", 0);
+	rl_on_new_line();
+	rl_redisplay();
 }
 
-char	*check_token(t_argv *cmd)
+char	*quote_err(char **line, t_argv *cmd, int *status)
 {
-	size_t		i;
-	char		*tmp;
-	char		*tmp2;
-
-	i = 0;
-	while (i < cmd->len)
-	{
-		tmp = (char *)cmd->array[i];
-		if (ft_strchr("<>|", tmp[0]) && *tmp)
-		{
-			tmp2 = cmd->array[++i];
-			if (!tmp2 || *tmp2 == '\0')
-			{
-				if (cmd->array[i + 1] == NULL || cmd->len < i + 1)
-					return (ft_strdup("newline"));
-				tmp = cmd->array[++i];
-				if (ft_strchr("<>|", tmp[0]) || !tmp)
-					return (ft_strdup(tmp));
-				else if (!tmp || *tmp == '\0')
-					return (ft_strdup("newline"));
-			}
-		}
-		i++;
-	}
+	free(line);
+	argv_destroy(cmd, free);
+	ft_fprintf(2,
+		"minishell: syntax error detected an unclosed quote(s)\n");
+	*status = 258;
 	return (NULL);
 }
 
-void	*signal_handler(int sig)
+t_argv	*get_cmd(char *line, int *status)
 {
-	if (sig == SIGINT)
+	t_argv	*cmd;
+	char	*str;
+
+	if (line[0] == '\0' || check_line(line))
 	{
-		ioctl(0, TIOCSTI, "$> ");
+		free(line);
+		return (NULL);
 	}
-	else if (sig == SIGQUIT)
+	cmd = argv_new(NULL, NULL);
+	add_history(line);
+	if (lexer(cmd, line, *status))
+		return (quote_err(&line, cmd, status));
+	free(line);
+	str = check_token(cmd);
+	if (str || heredoc_check(cmd))
 	{
-		ioctl(0, TIOCSTI, "$> ");
+		printf("minishell: syntax error near unexpected token `%s'\n", str);
+		if (str)
+			free(str);
+		*status = 258;
+		argv_destroy(cmd, free);
+		return (NULL);
 	}
-	return (0);
+	return (cmd);
 }
 
-int	check_line(char *line)
+void	minishell(int *status, t_argv *cmd)
 {
-	while (line && *line)
+	char	*line;
+
+	while (1)
 	{
-		if (ft_isspace(*line))
-			line++;
+		signal(SIGINT, (void (*)(int))signal_handler);
+		signal(SIGQUIT, SIG_IGN);
+		if (g_et->try_index != 0)
+		{
+			*status = g_et->try_index;
+			g_et->try_index = 0;
+		}
+		line = readline("$> ");
+		if (line == NULL)
+			break ;
+		cmd = get_cmd(line, status);
+		if (cmd == NULL)
+			continue ;
+		else if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
+				&& is_builtin(cmd))
+			*status = builtin_op(cmd);
 		else
-			return (0);
+			*status = exec_all(cmd, find_procces_size(cmd));
+		argv_destroy(cmd, free);
 	}
-	return (1);
 }
 
 int	main(int argc, char **argv, char **envp)
@@ -100,43 +115,8 @@ int	main(int argc, char **argv, char **envp)
 	argv_push(g_et, argv_new(NULL, NULL));
 	env = g_et->array[0];
 	status = 0;
-	while (1)
-	{
-		signal(SIGINT, (void (*)(int))signal_handler);
-		signal(SIGQUIT, SIG_IGN);
-		line = readline("$> ");
-		if (line == NULL)
-			break ;
-		if (line[0] == '\0' || check_line(line))
-		{
-			free(line);
-			continue ;
-		}
-		cmd = argv_new(NULL, NULL);
-		add_history(line);
-		if (lexer(cmd, line, status))
-		{
-			free(line);
-			argv_destroy(cmd, free);
-			ft_fprintf(2, "minishell: syntax error detected an unclosed quote(s)\n");
-			status = 258;
-			continue ;
-		}
-		free(line);
-		str = check_token(cmd);
-		if (str || heredoc_check(cmd))
-		{
-			printf("minishell: syntax error near unexpected token `%s'\n", str);
-			status = 258;
-		}
-		else if (argv_try(cmd, "|", 0, (int (*)(void *, void *))ft_strcmp) != 0
-				&& is_builtin(cmd))
-			status = builtin_op(cmd);
-		else
-			status = exec_all(cmd, find_procces_size(cmd));
-		if (str)
-			free(str);
-		argv_destroy(cmd, free);
-	}
+	(void)argc;
+	(void)argv;
+	minishell(&status, cmd);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:10 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 12:32:11 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 12:06:53 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ char	*str3join(char *s1, char *s2, char *s3)
 	return (str);
 }
 
-char	*strncpy(char *dest, const char *src, size_t n)
+char	*ft_strncpy(char *dest, const char *src, size_t n)
 {
 	size_t	i;
 

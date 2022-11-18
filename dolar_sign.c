@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 20:16:48 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 20:55:43 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 13:52:38 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,15 +36,7 @@ char	*implement(char *line_s, int status)
 	{
 		if (line && line[i] == '$')
 		{
-			if (line[i + 1] == '$')
-			{
-				tmp = str3join(ft_substr(line, 0, i), ft_itoa(getpid()),
-						ft_strdup(line + i + 2));
-				free(line);
-				line = tmp;
-				continue ;
-			}
-			else if (!line[i + 1])
+			if (!line[i + 1])
 			{
 				tmp = str3join(ft_substr(line, 0, i), ft_strdup("$"),
 						ft_strdup(""));

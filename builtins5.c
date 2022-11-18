@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:32 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 12:32:33 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 09:47:48 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ int	unset(char *tmp, t_argv *cmd, int status, int i)
 
 	env = g_et->array[0];
 	exp = g_et->array[1];
+	tmp = NULL;
 	if (ft_isstring(cmd->array[i]))
 	{
 		tmp = ft_strjoin(cmd->array[i], "=");

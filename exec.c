@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:36:13 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 16:15:12 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 11:39:55 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,20 @@ int	wait_all(int pid, int max)
 	return (last_pid >> 8);
 }
 
+void	pre_exec(t_argv *trgt, t_info info)
+{
+	if (info.i != 0)
+	{
+		dup2(info.fd, 0);
+		close(info.fd);
+	}
+	if (info.i != info.max_proc - 1)
+		dup2(info.io[1], 1);
+	close(info.io[0]);
+	close(info.io[1]);
+	exit(exec_this(trgt));
+}
+
 int	exec_all(t_argv *exec, int max_proc)
 {
 	int		pid;
@@ -106,18 +120,7 @@ int	exec_all(t_argv *exec, int max_proc)
 		pipe(io);
 		pid = fork();
 		if (pid == 0)
-		{
-			if (i != 0)
-			{
-				dup2(fd, 0);
-				close(fd);
-			}
-			if (i != max_proc - 1)
-				dup2(io[1], 1);
-			close(io[0]);
-			close(io[1]);
-			exit(exec_this(trgt));
-		}
+			pre_exec(trgt, (t_info){i, fd, io, max_proc});
 		argv_destroy(trgt, (void (*)(void *))free);
 		if (i != 0)
 			close(fd);

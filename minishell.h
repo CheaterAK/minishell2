@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:33:54 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 20:36:58 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 12:37:53 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,14 @@
 # define MINISHELL_H
 # include <argv.h>
 # include <stddef.h>
+
+typedef struct s_info
+{
+	int	i;
+	int	fd;
+	int	*io;
+	int	max_proc;
+}		t_info;
 /*
 ** utils.c
 */
@@ -98,12 +106,21 @@ int		heredoc_check(t_argv *cmd);
 */
 
 int		ft_isspace(char c);
+void	signal_handler(int);
 
 /*
 ** queto.c
 */
 
-char	*lexer_word_plus_quit(t_argv *cmd, char *line, int status);
+char	*lexer_word_plus_quote(t_argv *cmd, char *line, int status);
+
+/*
+** queto2.c
+*/
+
+char	*jump_to_single_quote(char *line);
+char	*jump_to_double_quote(char *line);
+
 
 /*
 ** dollar_sign.c
