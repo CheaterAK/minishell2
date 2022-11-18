@@ -13,7 +13,7 @@ CC =  gcc
 READLINE_LIB = -L${HOME}/goinfre/.brew/opt/readline/lib
 READLINE_INC = -I${HOME}/goinfre/.brew/opt/readline/include
 
-FLAGS = -g # -Wall -Werror -Wextra  #-fsanitize=address
+FLAGS = -Wall -Werror -Wextra
 
 SECURE = $(addprefix $(LIBFT_DIR), ft_printf.h) minishell.h
 
@@ -23,7 +23,6 @@ all : $(NAME)
 
 $(NAME) : $(SECURE) $(LIBFT) $(OBJS)
 	$(CC) $(FLAGS) $(OBJS) $(LIBFT) -o $(NAME) -I./ -lreadline $(READLINE_LIB)
- # -l/goinfre/akocabas/.brew/Cellar/readline/8.2.1/lib -I./ -I/goinfre/akocabas/.brew/Cellar/readline/8.2.1/lib/include/readline
 $(LIBFT) :
 	make -C $(LIBFT_DIR)
 

@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:26 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/18 16:18:42 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:27:20 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	signal_handler(int sig)
 	rl_on_new_line();
 	rl_redisplay();
 }
-char	*quote_err(char *line, t_argv *cmd, int *status)
+t_argv	*quote_err(char *line, t_argv *cmd, int *status)
 {
 	free(line);
 	argv_destroy(cmd, free);
@@ -73,10 +73,10 @@ t_argv	*get_cmd(char *line, int *status)
 	return (cmd);
 }
 
-void	minishell(int *status, t_argv *cmd)
+void	minishell(int *status)
 {
 	char	*line;
-
+	t_argv	*cmd;
 	while (1)
 	{
 		signal(SIGINT, (void (*)(int))signal_handler);
@@ -103,10 +103,7 @@ void	minishell(int *status, t_argv *cmd)
 
 int	main(int argc, char **argv, char **envp)
 {
-	char	*line;
 	int		status;
-	char	*str;
-	t_argv	*cmd;
 	t_argv	*env;
 
 	g_et = argv_new(NULL, NULL);
@@ -116,6 +113,6 @@ int	main(int argc, char **argv, char **envp)
 	status = 0;
 	(void)argc;
 	(void)argv;
-	minishell(&status, cmd);
+	minishell(&status);
 	return (0);
 }

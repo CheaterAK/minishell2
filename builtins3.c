@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:39 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 12:32:40 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:31:12 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@
 int	env_cmp(char *s1, char *s2)
 {
 	int		res;
-	char	*ret;
 
 	res = ft_strncmp(s2, s1, ft_strlen(s2));
 	return (res);
@@ -34,9 +33,9 @@ int	env_cmp(char *s1, char *s2)
 
 char	**clone(t_argv *env, t_argv *exp)
 {
-	char	**tmparr;
-	int		i;
-	int		j;
+	char		**tmparr;
+	size_t		i;
+	size_t		j;
 
 	i = 0;
 	j = 0;
@@ -100,7 +99,7 @@ void	set_sorted_tmp(t_argv **tmp, t_argv *env, t_argv *exp)
 
 void	env_print(t_argv *env)
 {
-	int		i;
+	size_t	i;
 	t_argv	*tmp;
 	t_argv	*exp;
 

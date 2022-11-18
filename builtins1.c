@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:45 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 13:22:38 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:28:10 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ int	ft_cd(t_argv *cmd)
 	return (0);
 }
 
-int	ft_pwd(t_argv *cmd)
+int	ft_pwd(void)
 {
 	char	path[512];
 

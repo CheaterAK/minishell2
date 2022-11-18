@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:36 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 20:11:58 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:31:25 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,7 +99,7 @@ int	ft_export(t_argv *cmd)
 {
 	t_argv	*exp;
 	t_argv	*env;
-	int		i;
+	size_t	i;
 	int		status;
 
 	i = 1;

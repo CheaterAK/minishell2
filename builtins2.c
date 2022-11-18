@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:32:42 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/17 13:32:06 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:30:06 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,10 +23,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-int	ft_env(t_argv *cmd)
+int	ft_env(void)
 {
 	t_argv	*env;
-	int		i;
+	size_t	i;
 
 	i = 0;
 	env = g_et->array[0];
@@ -77,7 +77,7 @@ int	is_valid_n(char *str)
 	return (1);
 }
 
-void	check_n(int *i, int *n, t_argv *cmd)
+void	check_n(size_t *i, int *n, t_argv *cmd)
 {
 	while (*i < cmd->len)
 	{
@@ -93,8 +93,8 @@ void	check_n(int *i, int *n, t_argv *cmd)
 
 int	ft_echo(t_argv *cmd)
 {
-	int	i;
-	int	n;
+	size_t	i;
+	int		n;
 
 	i = 1;
 	n = 0;

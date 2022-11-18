@@ -6,7 +6,7 @@
 /*   By: akocabas <akocabas@student.42istanbul.c    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/11/17 12:33:54 by akocabas          #+#    #+#             */
-/*   Updated: 2022/11/18 16:10:02 by akocabas         ###   ########.fr       */
+/*   Updated: 2022/11/18 16:29:29 by akocabas         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int		is_builtin(t_argv *cmd);
 
 int		ft_echo(t_argv *cmd);
 int		ft_cd(t_argv *cmd);
-int		ft_pwd(t_argv *cmd);
+int		ft_pwd(void);
 int		ft_export(t_argv *cmd);
 int		ft_unset(t_argv *cmd);
 
@@ -48,7 +48,7 @@ int		ft_unset(t_argv *cmd);
 ** builtins2.c
 */
 
-int		ft_env(t_argv *cmd);
+int		ft_env(void);
 int		ft_exit(t_argv *cmd);
 
 /*
